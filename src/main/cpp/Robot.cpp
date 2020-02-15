@@ -6,18 +6,18 @@
 #include <frc/WPILib.h>
 //#include "rev/ColorSensorV3.h"
 
-WPI_TalonSRX Wheel1 {1};
-WPI_TalonSRX Wheel2 {2};
-WPI_TalonSRX Wheel3 {3};
-WPI_TalonSRX Wheel4 {4};
+WPI_VictorSPX WheelBackLeft {2};
+WPI_VictorSPX WheelBackRight {1};
+WPI_VictorSPX WheelFrontRight {4};
+WPI_VictorSPX WheelFrontLeft {3};
 
-frc::MecanumDrive Mecanums {Wheel4 , Wheel3 , Wheel2 , Wheel1};
+frc::MecanumDrive Mecanums {WheelFrontLeft , WheelFrontRight , WheelBackRight , WheelBackLeft};
 
-WPI_VictorSPX BallShootFront {5};
-WPI_VictorSPX BallShootBack {6};
+WPI_TalonSRX BallShootFront {5};
+WPI_TalonSRX BallShootBack {6};
 
-WPI_VictorSPX ElevatorTop {7};
-WPI_VictorSPX ElevatorBottom {8};
+frc::VictorSP ElevatorTop {0};
+frc::VictorSP ElevatorBottom {1};
 
 frc::Relay BallIntake {9};
 
