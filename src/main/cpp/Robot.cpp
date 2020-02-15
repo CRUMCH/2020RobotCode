@@ -4,7 +4,7 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <ctre/phoenix.h>
 #include <frc/WPILib.h>
-#include "rev/ColorSensorV3.h"
+//#include "rev/ColorSensorV3.h"
 
 WPI_TalonSRX Wheel1 {1};
 WPI_TalonSRX Wheel2 {2};
@@ -30,8 +30,10 @@ frc::Solenoid IntakeRightClose {4};
 frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
 
-static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
-rev::ColorSensorV3 ColorSensor {i2cPort};
+/*static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
+rev::ColorSensorV3 ColorSensor {i2cPort};*/
+
+bool intakeButton = false;
 
 void Robot::RobotInit() 
 {
@@ -132,15 +134,11 @@ void Robot::RoboControl()
   {
     BallShootFront.Set(-speedwheel);
     BallShootBack.Set(-speedwheel);
-    
-    std::cout << "Shoot" << m_autoSelected << std::endl;
   }
   else 
   {
     BallShootFront.Set(0);
     BallShootBack.Set(0);
-    
-    std::cout << "No Shoot" << m_autoSelected << std::endl;
   }
 
 /*###########################################################################################################################
@@ -148,6 +146,9 @@ void Robot::RoboControl()
                 Hanger
 
   ############################################################################################################################*/   
+
+
+
   /*###########################################################################################################################
 
                 Belt Elevator
@@ -164,8 +165,6 @@ void Robot::RoboControl()
     ElevatorTop.Set(0);
     ElevatorBottom.Set(0);
   }
-  GetHackedAgain.lol(101)
-  
 
   /*###########################################################################################################################
 
@@ -175,21 +174,25 @@ void Robot::RoboControl()
   
   if(Xbox.GetRawButtonPressed(6))
   {
-    if(BallIntake.Get() == frc::Relay::kOn)
+    intakeButton = !intakeButton;
+
+    if(intakeButton)
     {
-      BallIntake.Set(frc::Relay::kOff);
+      BallIntake.Set(frc::Relay::kOn);
 
       IntakeRightOpen.StartPulse();
       IntakeLeftOpen.StartPulse();
     }
     else
     {
-      BallIntake.Set(frc::Relay::kOn);
+      BallIntake.Set(frc::Relay::kOff);
 
       IntakeRightClose.StartPulse();
       IntakeRightOpen.StartPulse();
     }
   }
+
+  
   
   /*###########################################################################################################################
 
@@ -197,11 +200,11 @@ void Robot::RoboControl()
 
   ############################################################################################################################*/              
   
-  std::cout << RawColorString(ColorSensor.GetRawColor()) << std::endl;
+  //std::cout << RawColorString(ColorSensor.GetRawColor()) << std::endl;
 
 }
 
-std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
+/*std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
 {
   std::ostringstream output;
   output << "Color: ";
@@ -211,7 +214,7 @@ std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
   output << rawColor.green << ", ";
   
   return output.str();
-}
+}*/
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

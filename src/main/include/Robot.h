@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-#include "rev/ColorSensorV3.h"
+//#include "rev/ColorSensorV3.h"
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
 
@@ -22,5 +22,5 @@ class Robot : public frc::TimedRobot {
   const std::string kAutoNameDefault = "Default";
   const std::string kAutoNameCustom = "My Auto";
   std::string m_autoSelected;
-  std::string RawColorString(rev::ColorSensorV3::RawColor);
+  //std::string RawColorString(rev::ColorSensorV3::RawColor);
 };
