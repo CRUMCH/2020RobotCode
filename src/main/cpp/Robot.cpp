@@ -11,7 +11,7 @@ WPI_VictorSPX WheelBackRight {1};
 WPI_VictorSPX WheelFrontRight {4};
 WPI_VictorSPX WheelFrontLeft {3};
 
-frc::MecanumDrive Mecanums {WheelFrontLeft , WheelFrontRight , WheelBackRight , WheelBackLeft};
+frc::MecanumDrive Mecanums {WheelFrontLeft , WheelBackLeft , WheelFrontRight , WheelBackRight};
 
 WPI_TalonSRX BallShootFront {5};
 WPI_TalonSRX BallShootBack {6};
