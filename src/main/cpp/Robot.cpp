@@ -155,7 +155,7 @@ void Robot::RoboControl()
 
   ############################################################################################################################*/  
 
-  if(Xbox.GetRawButtonPressed(1))
+  if(Xbox.GetRawButton(1))
   {
     ElevatorTop.Set(0.35);
     ElevatorBottom.Set(-0.35);
