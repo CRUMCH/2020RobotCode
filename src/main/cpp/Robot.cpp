@@ -4,7 +4,7 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <ctre/phoenix.h>
 #include <frc/WPILib.h>
-//#include "rev/ColorSensorV3.h"
+#include "rev/ColorSensorV3.h"
 
 WPI_VictorSPX WheelBackLeft {2};
 WPI_VictorSPX WheelBackRight {1};
@@ -19,6 +19,8 @@ WPI_TalonSRX BallShootBack {6};
 frc::VictorSP ElevatorTop {0};
 frc::VictorSP ElevatorBottom {1};
 
+frc::VictorSP ColorWheelSpin {2}; // ?
+
 frc::Relay BallIntake {9};
 
 frc::Solenoid IntakeLeftOpen {1};
@@ -27,13 +29,24 @@ frc::Solenoid IntakeRightOpen {2};
 frc::Solenoid IntakeLeftClose {3};
 frc::Solenoid IntakeRightClose {4};
 
+frc::Solenoid ColorWheelOpen {5}; // ?
+frc::Solenoid ColorWheelClose {6}; // ?
+
 frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
+frc::Joystick ControllerThingy {2}; // ?
 
-/*static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
-rev::ColorSensorV3 ColorSensor {i2cPort};*/
+
 
 bool intakeButton = false;
+
+//Color sensor section
+
+static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
+rev::ColorSensorV3 ColorSensor {i2cPort};
+rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
+
+//End color sensor section
 
 void Robot::RobotInit() 
 {
@@ -46,9 +59,10 @@ void Robot::RobotInit()
   IntakeRightClose.SetPulseDuration(0.1);
   IntakeLeftClose.SetPulseDuration(0.1);
 }
+
 void Robot::RobotPeriodic() 
 {
-
+  colorRead = ColorSensor.GetRawColor();
 }
 
 void Robot::AutonomousInit() 
@@ -83,6 +97,12 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
+  RunDriveTrain();
+  RunLaucher();
+  RunHanger();
+  RunElevator();
+  RunIntakeArm();
+  RunColorWheel();
   RoboControl();
 }
 
@@ -91,14 +111,20 @@ void Robot::TestPeriodic()
 
 }
 
-void Robot::RoboControl()
-{
-  /*########################################################################################################################
-      
-                Drivetrain Program
+// std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
+// {
+//   std::ostringstream output;
+//   output << "Color: ";
+//   output << rawColor.blue << ", ";
+//   output << rawColor.red << ", ";
+//   output << rawColor.ir << ", ";
+//   output << rawColor.green << ", ";
+  
+//   return output.str();
+// }
 
-  #########################################################################################################################*/
- 
+void Robot::RunDriveTrain()
+{
   double xboxLX = Xbox.GetRawAxis(0);
   double xboxRX = Xbox.GetRawAxis(4);
 
@@ -120,13 +146,10 @@ void Robot::RoboControl()
   }
   
   Mecanums.DriveCartesian(xboxRX , xboxRY , xboxLX);
-  
-  /*########################################################################################################################
+}
 
-                Launcher Prototype Program
-
-  #########################################################################################################################*/              
-  
+void Robot::RunLaucher()
+{ 
   double speedwheel = (Yoke.GetRawAxis(2) * -1);
   speedwheel = ((speedwheel + 1.0) / 2.0);
 
@@ -140,22 +163,16 @@ void Robot::RoboControl()
     BallShootFront.Set(0);
     BallShootBack.Set(0);
   }
+}
 
-/*###########################################################################################################################
+void Robot::RunHanger()
+{
 
-                Hanger
+}
 
-  ############################################################################################################################*/   
-
-
-
-  /*###########################################################################################################################
-
-                Belt Elevator
-
-  ############################################################################################################################*/  
-
-  if(Xbox.GetRawButton(1))
+void Robot::RunElevator()
+{
+   if(Xbox.GetRawButton(1))
   {
     ElevatorTop.Set(0.35);
     ElevatorBottom.Set(-0.35);
@@ -165,13 +182,10 @@ void Robot::RoboControl()
     ElevatorTop.Set(0);
     ElevatorBottom.Set(0);
   }
+}
 
-  /*###########################################################################################################################
-
-                Ball Intake Arm
-
-  ############################################################################################################################*/   
-  
+void Robot::RunIntakeArm()
+{
   if(Xbox.GetRawButtonPressed(6))
   {
     intakeButton = !intakeButton;
@@ -191,30 +205,71 @@ void Robot::RoboControl()
       IntakeRightOpen.StartPulse();
     }
   }
-
-  
-  
-  /*###########################################################################################################################
-
-                Color Wheel
-
-  ############################################################################################################################*/              
-  
-  //std::cout << RawColorString(ColorSensor.GetRawColor()) << std::endl;
-
 }
 
-/*std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
+void Robot::RunColorWheel()
 {
-  std::ostringstream output;
-  output << "Color: ";
-  output << rawColor.blue << ", ";
-  output << rawColor.red << ", ";
-  output << rawColor.ir << ", ";
-  output << rawColor.green << ", ";
-  
-  return output.str();
-}*/
+      if(ControllerThingy.GetRawButtonPressed(1)) // Red
+    {
+      ColorWheelOpen.StartPulse();
+
+      if(colorRead.blue < 800 && colorRead.green > 200 && colorRead.red > 200) // Search Not Blue
+      {
+        ColorWheelSpin.Set(.15);
+      }
+      else
+      {
+        ColorWheelSpin.Set(0);
+      }
+    }
+    else if(ControllerThingy.GetRawButtonPressed(2)) // Blue
+    {
+      ColorWheelOpen.StartPulse();
+
+      if(colorRead.blue > 200 && colorRead.green > 200 && colorRead.red < 800) // Search Not Red
+      {
+        ColorWheelSpin.Set(.15);
+      }
+      else
+      {
+        ColorWheelSpin.Set(0);
+      }
+    }
+    else if(ControllerThingy.GetRawButtonPressed(3)) // Green
+    {
+      ColorWheelOpen.StartPulse();
+
+      if(colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Yellow
+      {
+        ColorWheelSpin.Set(.15);
+      }
+      else
+      {
+        ColorWheelSpin.Set(0);
+      }
+    }
+    else if(ControllerThingy.GetRawButtonPressed(4)) // Yellow
+    {
+      ColorWheelOpen.StartPulse();
+
+      if(colorRead.blue > 200 && colorRead.green < 800 && colorRead.red > 200) // Search Green
+      {
+        ColorWheelSpin.Set(.15);
+      }
+      else
+      {
+        ColorWheelSpin.Set(0);
+      }
+    }
+    ColorWheelClose.StartPulse();
+}
+
+
+
+void Robot::RoboControl()
+{
+
+}
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
