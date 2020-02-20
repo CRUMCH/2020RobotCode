@@ -36,7 +36,8 @@ frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
 frc::Joystick ControllerThingy {2}; // ?
 
-
+bool colorWheelSwitch = false;
+int colorWheelRotationsDoubled = 0;
 
 bool intakeButton = false;
 
@@ -209,62 +210,82 @@ void Robot::RunIntakeArm()
 
 void Robot::RunColorWheel()
 {
-      if(ControllerThingy.GetRawButtonPressed(1)) // Red
-    {
-      ColorWheelOpen.StartPulse();
+  if(ControllerThingy.GetRawButtonPressed(1)) // Red
+  {
+    ColorWheelOpen.StartPulse();
 
-      if(colorRead.blue < 800 && colorRead.green > 200 && colorRead.red > 200) // Search Not Blue
+    if(colorRead.blue < 800 && colorRead.green > 200 && colorRead.red > 200) // Search Not Blue
+    {
+      ColorWheelSpin.Set(.15);
+    }
+    else
+    {
+      ColorWheelSpin.Set(0);
+    }
+  }
+  else if(ControllerThingy.GetRawButtonPressed(2)) // Blue
+  {
+    ColorWheelOpen.StartPulse();
+
+    if(colorRead.blue > 200 && colorRead.green > 200 && colorRead.red < 800) // Search Not Red
+    {
+      ColorWheelSpin.Set(.15);
+    }
+    else
+    {
+      ColorWheelSpin.Set(0);
+    }
+  }
+  else if(ControllerThingy.GetRawButtonPressed(3)) // Green
+  {
+    ColorWheelOpen.StartPulse();
+
+    if(colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Not Yellow
+    {
+      ColorWheelSpin.Set(.15);
+    }
+    else
+    {
+      ColorWheelSpin.Set(0);
+    }
+  }
+  else if(ControllerThingy.GetRawButtonPressed(4)) // Yellow
+  {
+    ColorWheelOpen.StartPulse();
+
+    if(colorRead.blue > 200 && colorRead.green < 800 && colorRead.red > 200) // Search Not Green
+    {
+      ColorWheelSpin.Set(.15);
+    }
+    else
+    {
+      ColorWheelSpin.Set(0);
+    }
+  }
+  else if(ControllerThingy.GetRawButtonPressed(5)) // Stage 1 Multi-Spin
+  {
+    ColorWheelOpen.StartPulse();
+
+    if(colorWheelRotationsDoubled != 8) // Checking for if the number of half rotations does not equal 8
+    {
+      ColorWheelSpin.Set(.25);
+      if(colorWheelSwitch == true && colorRead.blue > 800 && colorRead.green > 800 && colorRead.red < 200) // Search Yellow
       {
-        ColorWheelSpin.Set(.15);
+        colorWheelSwitch = false; // Setting bool to false so that it can't count one yellow twice
+        colorWheelRotationsDoubled = colorWheelRotationsDoubled + 1; // Counting this appearence of yellow (1 half turn)
       }
-      else
+      else if(colorWheelSwitch == false && colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Not Yellow
       {
-        ColorWheelSpin.Set(0);
+        colorWheelSwitch = true; // Setting bool to true so when "Not Yellow" is found so that future yellow is found later
       }
     }
-    else if(ControllerThingy.GetRawButtonPressed(2)) // Blue
+    else
     {
-      ColorWheelOpen.StartPulse();
-
-      if(colorRead.blue > 200 && colorRead.green > 200 && colorRead.red < 800) // Search Not Red
-      {
-        ColorWheelSpin.Set(.15);
-      }
-      else
-      {
-        ColorWheelSpin.Set(0);
-      }
+      ColorWheelSpin.Set(0);
     }
-    else if(ControllerThingy.GetRawButtonPressed(3)) // Green
-    {
-      ColorWheelOpen.StartPulse();
-
-      if(colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Yellow
-      {
-        ColorWheelSpin.Set(.15);
-      }
-      else
-      {
-        ColorWheelSpin.Set(0);
-      }
-    }
-    else if(ControllerThingy.GetRawButtonPressed(4)) // Yellow
-    {
-      ColorWheelOpen.StartPulse();
-
-      if(colorRead.blue > 200 && colorRead.green < 800 && colorRead.red > 200) // Search Green
-      {
-        ColorWheelSpin.Set(.15);
-      }
-      else
-      {
-        ColorWheelSpin.Set(0);
-      }
-    }
-    ColorWheelClose.StartPulse();
+  }
+  ColorWheelClose.StartPulse();
 }
-
-
 
 void Robot::RoboControl()
 {
