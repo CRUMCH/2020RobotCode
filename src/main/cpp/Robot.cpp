@@ -36,6 +36,14 @@ frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
 frc::Joystick ControllerThingy {2}; // ?
 
+frc::DigitalInput PresenceSensorFirst {?}; // Photoelectric Sensor
+frc::DigitalInput PresenceSensorSecond {?}; // Photoelectric Sensor
+
+bool psFirstOn = false;
+bool psSecondOn = false;
+bool psSwitched = false;
+int ballCount = 0;
+
 bool colorWheelSwitch = false;
 int colorWheelRotationsDoubled = 0;
 
@@ -173,15 +181,35 @@ void Robot::RunHanger()
 
 void Robot::RunElevator()
 {
-   if(Xbox.GetRawButton(1))
+  psFirstOn = PresenceSensorFirst.Get();
+  psSecondOn = PresenceSensorSecond.Get();
+  
+  if(ballCount < 5)
   {
-    ElevatorTop.Set(0.35);
-    ElevatorBottom.Set(-0.35);
+    IntakeRightOpen.StartPulse();
+    IntakeLeftOpen.StartPulse();
+
+    if(psFirstOn == true)
+    {
+      ElevatorTop.Set(.5);
+      ElevatorBottem.Set(.5);
+
+      if(psSwitched == false)
+      {
+        ballCount = ballCount + 1;
+        psSwitched = true;
+      }
+    }
+    if(psSecondOn == true && psFirstOn == false)
+    {
+      ElevatorTop.Set(0);
+      ElevatorBottem.Set(0);
+    }
   }
   else
   {
-    ElevatorTop.Set(0);
-    ElevatorBottom.Set(0);
+    IntakeRightClose.StartPulse();
+    IntakeLeftClose.StartPulse();
   }
 }
 
@@ -269,6 +297,7 @@ void Robot::RunColorWheel()
     if(colorWheelRotationsDoubled != 8) // Checking for if the number of half rotations does not equal 8
     {
       ColorWheelSpin.Set(.25);
+      
       if(colorWheelSwitch == true && colorRead.blue > 800 && colorRead.green > 800 && colorRead.red < 200) // Search Yellow
       {
         colorWheelSwitch = false; // Setting bool to false so that it can't count one yellow twice
