@@ -19,6 +19,9 @@ WPI_TalonSRX BallShootBack {6};
 frc::VictorSP ElevatorTop {0};
 frc::VictorSP ElevatorBottom {1};
 
+frc::VictorSP HangerUp {0};
+frc::VictorSP HangerSide {0};
+
 frc::VictorSP ColorWheelSpin {2}; // ?
 
 frc::Relay BallIntake {9};
@@ -36,8 +39,9 @@ frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
 frc::Joystick ControllerThingy {2}; // ?
 
-frc::DigitalInput PresenceSensorFirst {?}; // Photoelectric Sensor
-frc::DigitalInput PresenceSensorSecond {?}; // Photoelectric Sensor
+frc::DigitalInput PresenceSensorFirst {5}; // Photoelectric Sensor ?
+frc::DigitalInput PresenceSensorSecond {6}; // Photoelectric Sensor ?
+
 
 bool psFirstOn = false;
 bool psSecondOn = false;
@@ -176,7 +180,43 @@ void Robot::RunLaucher()
 
 void Robot::RunHanger()
 {
+  int customYAxis = ControllerThingy.GetRawAxis(0);
+  if(customYAxis < .1 && customYAxis > -.1)
+  {
+    customYAxis = 0;
+  }
 
+  int customXAxis = ControllerThingy.GetRawAxis(0);
+  if(customXAxis < .1 && customXAxis > -.1)
+  {
+    customXAxis = 0;
+  }
+
+  if(customYAxis > 0)
+  {
+    HangerUp.Set(.5);
+  }
+  else if(customYAxis < 0)
+  {
+    HangerUp.Set(-.5);
+  }
+  else
+  {
+    HangerUp.Set(0);
+  }
+
+  if(customXAxis > 0)
+  {
+    HangerSide.Set(.5);
+  }
+  else if(customXAxis < 0)
+  {
+    HangerSide.Set(-.5);
+  }
+  else
+  {
+    HangerSide.Set(0);
+  }
 }
 
 void Robot::RunElevator()
@@ -186,13 +226,13 @@ void Robot::RunElevator()
   
   if(ballCount < 5)
   {
-    IntakeRightOpen.StartPulse();
-    IntakeLeftOpen.StartPulse();
+//    IntakeRightOpen.StartPulse();
+//    IntakeLeftOpen.StartPulse();
 
     if(psFirstOn == true)
     {
       ElevatorTop.Set(.5);
-      ElevatorBottem.Set(.5);
+      ElevatorBottom.Set(.5);
 
       if(psSwitched == false)
       {
@@ -203,13 +243,13 @@ void Robot::RunElevator()
     if(psSecondOn == true && psFirstOn == false)
     {
       ElevatorTop.Set(0);
-      ElevatorBottem.Set(0);
+      ElevatorBottom.Set(0);
     }
   }
   else
   {
-    IntakeRightClose.StartPulse();
-    IntakeLeftClose.StartPulse();
+//    IntakeRightClose.StartPulse();
+//    IntakeLeftClose.StartPulse();
   }
 }
 
