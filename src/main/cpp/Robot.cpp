@@ -13,27 +13,30 @@ WPI_VictorSPX WheelFrontLeft {3};
 
 frc::MecanumDrive Mecanums {WheelFrontLeft , WheelBackLeft , WheelFrontRight , WheelBackRight};
 
-WPI_TalonSRX BallShootFront {5};
-WPI_TalonSRX BallShootBack {6};
+WPI_TalonSRX BallShootUp {1};
+WPI_TalonSRX BallShootSide {2};
+
+frc::VictorSP BallShootUpper {5};
+frc::VictorSP BallShootLower {6};
 
 frc::VictorSP ElevatorTop {0};
 frc::VictorSP ElevatorBottom {1};
 
-frc::VictorSP HangerUp {0};
+frc::VictorSP HangerUp {4};
 frc::VictorSP HangerSide {0};
 
-frc::VictorSP ColorWheelSpin {2}; // ?
+frc::VictorSP ColorWheelSpin {7}; // ?
 
-frc::Relay BallIntake {9};
+frc::Relay BallIntake {2};
 
-frc::Solenoid IntakeLeftOpen {1};
-frc::Solenoid IntakeRightOpen {2};
+frc::Solenoid IntakeLeftOpen {10};
+frc::Solenoid IntakeRightOpen {10};
 
-frc::Solenoid IntakeLeftClose {3};
-frc::Solenoid IntakeRightClose {4};
+frc::Solenoid IntakeLeftClose {10};
+frc::Solenoid IntakeRightClose {10};
 
-frc::Solenoid ColorWheelOpen {5}; // ?
-frc::Solenoid ColorWheelClose {6}; // ?
+frc::Solenoid ColorWheelOpen {10}; // ?
+frc::Solenoid ColorWheelClose {10}; // ?
 
 frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
@@ -110,13 +113,17 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  RunDriveTrain();
-  RunLaucher();
+  // RunDriveTrain();
+  // RunLaucher();
   RunHanger();
-  RunElevator();
+  // RunElevator();
   RunIntakeArm();
-  RunColorWheel();
-  RoboControl();
+  // RunColorWheel();
+  // RoboControl();
+
+  // RunLauncherTest();
+  // RunElevatorTest();
+  // ControlByButtons();
 }
 
 void Robot::TestPeriodic() 
@@ -161,32 +168,32 @@ void Robot::RunDriveTrain()
   Mecanums.DriveCartesian(xboxRX , xboxRY , xboxLX);
 }
 
-void Robot::RunLaucher()
+void Robot::RunLaucherTest()
 { 
   double speedwheel = (Yoke.GetRawAxis(2) * -1);
   speedwheel = ((speedwheel + 1.0) / 2.0);
 
-  if(Yoke.GetRawButton(1))
+  if(Xbox.GetRawButton(1))
   {
-    BallShootFront.Set(-speedwheel);
-    BallShootBack.Set(-speedwheel);
+    BallShootUp.Set(.8);
+    BallShootSide.Set(.8);
   }
   else 
   {
-    BallShootFront.Set(0);
-    BallShootBack.Set(0);
+    BallShootUp.Set(0);
+    BallShootSide.Set(0);
   }
 }
 
 void Robot::RunHanger()
 {
-  int customYAxis = ControllerThingy.GetRawAxis(0);
+  int customYAxis = Xbox.GetRawAxis(5);
   if(customYAxis < .1 && customYAxis > -.1)
   {
     customYAxis = 0;
   }
 
-  int customXAxis = ControllerThingy.GetRawAxis(0);
+  int customXAxis = Xbox.GetRawAxis(4);
   if(customXAxis < .1 && customXAxis > -.1)
   {
     customXAxis = 0;
@@ -221,36 +228,41 @@ void Robot::RunHanger()
 
 void Robot::RunElevator()
 {
-  psFirstOn = PresenceSensorFirst.Get();
-  psSecondOn = PresenceSensorSecond.Get();
+//   psFirstOn = PresenceSensorFirst.Get();
+//   psSecondOn = PresenceSensorSecond.Get();
   
-  if(ballCount < 5)
-  {
-//    IntakeRightOpen.StartPulse();
-//    IntakeLeftOpen.StartPulse();
+//   if(ballCount < 5)
+//   {
+// //    IntakeRightOpen.StartPulse();
+// //    IntakeLeftOpen.StartPulse();
 
-    if(psFirstOn == true)
-    {
-      ElevatorTop.Set(.5);
-      ElevatorBottom.Set(.5);
+//     if(psFirstOn == true)
+//     {
+//       ElevatorTop.Set(.5);
+//       ElevatorBottom.Set(.5);
 
-      if(psSwitched == false)
-      {
-        ballCount = ballCount + 1;
-        psSwitched = true;
-      }
-    }
-    if(psSecondOn == true && psFirstOn == false)
-    {
-      ElevatorTop.Set(0);
-      ElevatorBottom.Set(0);
-    }
-  }
-  else
-  {
-//    IntakeRightClose.StartPulse();
-//    IntakeLeftClose.StartPulse();
-  }
+//       if(psSwitched == false)
+//       {
+//         ballCount = ballCount + 1;
+//         psSwitched = true;
+//       }
+//     }
+//     if(psSecondOn == true && psFirstOn == false)
+//     {
+//       ElevatorTop.Set(0);
+//       ElevatorBottom.Set(0);
+//     }
+//   }
+//   else
+//   {
+// //    IntakeRightClose.StartPulse();
+// //    IntakeLeftClose.StartPulse();
+//   }
+}
+
+void Robot::RunElevatorTest()
+{
+
 }
 
 void Robot::RunIntakeArm()
@@ -265,6 +277,12 @@ void Robot::RunIntakeArm()
 
       IntakeRightOpen.StartPulse();
       IntakeLeftOpen.StartPulse();
+
+    //  ElevatorTop.Set(-.5);
+    //  ElevatorBottom.Set(.5);
+
+    //  BallShootUpper.Set(.8);
+    //  BallShootLower.Set(-.8);
     }
     else
     {
@@ -272,6 +290,12 @@ void Robot::RunIntakeArm()
 
       IntakeRightClose.StartPulse();
       IntakeRightOpen.StartPulse();
+
+      ElevatorTop.Set(0);
+      ElevatorBottom.Set(0);
+
+      BallShootUpper.Set(0);
+      BallShootLower.Set(0);
     }
   }
 }
@@ -361,6 +385,125 @@ void Robot::RoboControl()
 
 }
 
+void Robot::ControlByButtons()
+{
+  if(Xbox.GetRawButton(1))
+  {
+    WheelBackLeft.Set(.5);
+  }
+  else
+  {
+    WheelBackLeft.Set(0);
+  }
+  
+  if(Xbox.GetRawButton(2))
+  {
+    WheelBackRight.Set(.5);
+  }
+  else
+  {
+    WheelBackRight.Set(0);
+  }
+
+  if(Xbox.GetRawButton(3))
+  {
+    WheelFrontRight.Set(.5);
+  }
+  else
+  {
+    WheelFrontRight.Set(0);
+  }
+
+  if(Xbox.GetRawButton(4))
+  {
+    WheelFrontLeft.Set(.5);
+  }
+  else
+  {
+    WheelFrontLeft.Set(0);
+  }
+
+  if(Xbox.GetRawButton(5))
+  {
+    BallShootUp.Set(.5);
+  }
+  else
+  {
+    BallShootUp.Set(0);
+  }
+
+  if(Xbox.GetRawButton(6))
+  {
+    BallShootSide.Set(.5);
+  }
+  else
+  {
+    BallShootSide.Set(0);
+  }
+
+  if(Xbox.GetRawButton(7))
+  {
+    BallShootUpper.Set(.5);
+  }
+  else
+  {
+    BallShootUpper.Set(0);
+  }
+
+  if(Xbox.GetRawButton(8))
+  {
+    BallShootLower.Set(.5);
+  }
+  else
+  {
+    BallShootLower.Set(0);
+  }
+
+  if(Xbox.GetRawButton(9))
+  {
+    ColorWheelSpin.Set(.5);
+  }
+  else
+  {
+    ColorWheelSpin.Set(0);
+  }
+
+  if(Xbox.GetRawButton(10))
+  {
+    HangerUp.Set(.5);
+  }
+  else
+  {
+    HangerUp.Set(0);
+  }
+
+  if(Xbox.GetRawButton(1))
+  {
+    HangerSide.Set(.5);
+  }
+  else
+  {
+    HangerSide.Set(0);
+  }
+
+  if(Xbox.GetRawButton(2))
+  {
+    ElevatorTop.Set(.5);
+  }
+  else
+  {
+    ElevatorTop.Set(0);
+  }
+
+  if(Xbox.GetRawButton(3))
+  {
+    ElevatorBottom.Set(.5);
+  }
+  else
+  {
+    ElevatorBottom.Set(0);
+  }
+}
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
 #endif
