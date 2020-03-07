@@ -188,12 +188,13 @@ void Robot::RunLaucherTest()
 void Robot::RunHanger()
 {
   int customYAxis = Xbox.GetRawAxis(5);
+  int customXAxis = Xbox.GetRawAxis(4);
+  
   if(customYAxis < .1 && customYAxis > -.1)
   {
     customYAxis = 0;
   }
 
-  int customXAxis = Xbox.GetRawAxis(4);
   if(customXAxis < .1 && customXAxis > -.1)
   {
     customXAxis = 0;
@@ -228,36 +229,36 @@ void Robot::RunHanger()
 
 void Robot::RunElevator()
 {
-//   psFirstOn = PresenceSensorFirst.Get();
-//   psSecondOn = PresenceSensorSecond.Get();
+  psFirstOn = PresenceSensorFirst.Get();
+  psSecondOn = PresenceSensorSecond.Get();
   
-//   if(ballCount < 5)
-//   {
-// //    IntakeRightOpen.StartPulse();
-// //    IntakeLeftOpen.StartPulse();
+  if(ballCount < 5)
+  {
+    IntakeRightOpen.StartPulse();
+    IntakeLeftOpen.StartPulse();
 
-//     if(psFirstOn == true)
-//     {
-//       ElevatorTop.Set(.5);
-//       ElevatorBottom.Set(.5);
+    if(psFirstOn == true)
+    {
+      ElevatorTop.Set(.5);
+      ElevatorBottom.Set(.5);
 
-//       if(psSwitched == false)
-//       {
-//         ballCount = ballCount + 1;
-//         psSwitched = true;
-//       }
-//     }
-//     if(psSecondOn == true && psFirstOn == false)
-//     {
-//       ElevatorTop.Set(0);
-//       ElevatorBottom.Set(0);
-//     }
-//   }
-//   else
-//   {
-// //    IntakeRightClose.StartPulse();
-// //    IntakeLeftClose.StartPulse();
-//   }
+      if(psSwitched == false)
+      {
+        ballCount = ballCount + 1;
+        psSwitched = true;
+      }
+    }
+    if(psSecondOn == true && psFirstOn == false)
+    {
+      ElevatorTop.Set(0);
+      ElevatorBottom.Set(0);
+    }
+  }
+  else
+  {
+    IntakeRightClose.StartPulse();
+    IntakeLeftClose.StartPulse();
+  }
 }
 
 void Robot::RunElevatorTest()
