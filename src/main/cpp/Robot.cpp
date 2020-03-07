@@ -6,10 +6,10 @@
 #include <frc/WPILib.h>
 #include "rev/ColorSensorV3.h"
 
-WPI_VictorSPX WheelBackLeft {2};
-WPI_VictorSPX WheelBackRight {1};
-WPI_VictorSPX WheelFrontRight {4};
-WPI_VictorSPX WheelFrontLeft {3};
+WPI_VictorSPX WheelBackLeft {3};
+WPI_VictorSPX WheelBackRight {4};
+WPI_VictorSPX WheelFrontRight {2};
+WPI_VictorSPX WheelFrontLeft {1};
 
 frc::MecanumDrive Mecanums {WheelFrontLeft , WheelBackLeft , WheelFrontRight , WheelBackRight};
 
@@ -29,14 +29,11 @@ frc::VictorSP ColorWheelSpin {7}; // ?
 
 frc::Relay BallIntake {2};
 
-frc::Solenoid IntakeLeftOpen {10};
-frc::Solenoid IntakeRightOpen {10};
+frc::Solenoid IntakeOpen {0};
+frc::Solenoid IntakeClose {1};
 
-frc::Solenoid IntakeLeftClose {10};
-frc::Solenoid IntakeRightClose {10};
-
-frc::Solenoid ColorWheelOpen {10}; // ?
-frc::Solenoid ColorWheelClose {10}; // ?
+frc::Solenoid ColorWheelOpen {2};
+frc::Solenoid ColorWheelClose {3};
 
 frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
@@ -44,6 +41,22 @@ frc::Joystick ControllerThingy {2}; // ?
 
 frc::DigitalInput PresenceSensorFirst {5}; // Photoelectric Sensor ?
 frc::DigitalInput PresenceSensorSecond {6}; // Photoelectric Sensor ?
+
+frc::DigitalInput ShooterLimitY {0};
+frc::DigitalInput ShooterLimitXRight {1};
+frc::DigitalInput ShooterLimitXLeft {2};
+frc::DigitalInput BalanceLeft {3};
+frc::DigitalInput BalanceRight {4};
+frc::DigitalInput ClimberUpperLimit {5};
+
+// Communication With Arduino WIP
+
+// static constexpr auto usb = frc::SerialPort::Port::kUSB;
+// frc::SerialPort PixyCam {19200, usb};
+// std::string PixyCamStr = new std::string();
+// char PixyArray [80];
+// int pixyCamX = 0;
+// int pixyCamY = 0;
 
 std::string colorVisionStr = "";
 
@@ -57,13 +70,9 @@ int colorWheelRotationsDoubled = 0;
 
 bool intakeButton = false;
 
-//Color sensor section
-
 static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
 rev::ColorSensorV3 ColorSensor {i2cPort};
 rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
-
-//End color sensor section
 
 void Robot::RobotInit() 
 {
@@ -71,10 +80,11 @@ void Robot::RobotInit()
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
-  IntakeLeftOpen.SetPulseDuration(0.1);
-  IntakeRightOpen.SetPulseDuration(0.1);
-  IntakeRightClose.SetPulseDuration(0.1);
-  IntakeLeftClose.SetPulseDuration(0.1);
+  IntakeOpen.SetPulseDuration(0.1);
+  IntakeClose.SetPulseDuration(0.1);
+
+  ColorWheelOpen.SetPulseDuration(0.1);
+  ColorWheelClose.SetPulseDuration(0.1);
 }
 
 void Robot::RobotPeriodic() 
@@ -83,6 +93,16 @@ void Robot::RobotPeriodic()
   
   colorVisionStr = RawColorString(colorRead);
   frc::SmartDashboard::PutString("",colorVisionStr);
+
+  // Communication With Arduino WIP
+
+  // int size = PixyCam.Read(PixyArray, 80);
+  // PixyCamStr.trunc();
+  // for(int i = 0; i < size; i++) 
+  // {
+  //   PixyCamStr += PixyArray[i];
+  // }
+  // std::cout << PixyArray;
 }
 
 void Robot::AutonomousInit() 
@@ -123,7 +143,8 @@ void Robot::TeleopPeriodic()
   RunElevator();
   RunIntakeArm();
   RunColorWheel();
-  //ControlByButtons();
+  ControlByButtons();
+  ShooterTest();
 }
 
 void Robot::TestPeriodic() 
@@ -152,12 +173,11 @@ void Robot::RunDriveTrain()
 {
   double xboxLX = Xbox.GetRawAxis(0);
   double xboxRX = Xbox.GetRawAxis(4);
-
-  double xboxRY = Xbox.GetRawAxis(5);
+  double xboxLY = Xbox.GetRawAxis(1);
   
-  if ((xboxRY > -0.1) && (xboxRY < 0.1))
+  if ((xboxLY > -0.1) && (xboxLY < 0.1))
   {
-    xboxRY = 0;
+    xboxLY = 0;
   }
 
   if ((xboxRX > -0.1) && (xboxRX < 0.1))
@@ -170,7 +190,7 @@ void Robot::RunDriveTrain()
     xboxLX = 0;
   }
   
-  Mecanums.DriveCartesian(xboxRX , xboxRY , xboxLX);
+  Mecanums.DriveCartesian(xboxRX , xboxLY , xboxLX);
 }
 
 /*########################################################################################
@@ -181,8 +201,7 @@ void Robot::RunDriveTrain()
 
 void Robot::RunLauncher()
 { 
-  double speedwheel = (Yoke.GetRawAxis(2) * -1);
-  speedwheel = ((speedwheel + 1.0) / 2.0);
+  
 
   if(Xbox.GetRawButton(1))
   {
@@ -257,8 +276,7 @@ void Robot::RunElevator()
   
   if(ballCount < 5)
   {
-    IntakeRightOpen.StartPulse();
-    IntakeLeftOpen.StartPulse();
+    IntakeOpen.StartPulse();
 
     if(psFirstOn == true)
     {
@@ -279,8 +297,7 @@ void Robot::RunElevator()
   }
   else
   {
-    IntakeRightClose.StartPulse();
-    IntakeLeftClose.StartPulse();
+    IntakeClose.StartPulse();
   }
 }
 
@@ -300,8 +317,7 @@ void Robot::RunIntakeArm()
     {
       BallIntake.Set(frc::Relay::kReverse);
 
-      IntakeRightOpen.StartPulse();
-      IntakeLeftOpen.StartPulse();
+      IntakeOpen.StartPulse();
 
       ElevatorTop.Set(-.5);
       ElevatorBottom.Set(.5);
@@ -313,8 +329,7 @@ void Robot::RunIntakeArm()
     {
       BallIntake.Set(frc::Relay::kOff);
 
-      IntakeRightClose.StartPulse();
-      IntakeRightOpen.StartPulse();
+      IntakeClose.StartPulse();
 
       ElevatorTop.Set(0);
       ElevatorBottom.Set(0);
@@ -537,6 +552,55 @@ void Robot::ControlByButtons()
   {
     ElevatorBottom.Set(0);
   }
+}
+
+/*########################################################################################
+
+          Shooter Test
+
+########################################################################################*/
+
+void Robot::ShooterTest()
+{
+  double xboxRX = Xbox.GetRawAxis(4);
+  double xboxRY = Xbox.GetRawAxis(5);
+  double xboxTrigR = Xbox.GetRawAxis(3);
+
+  xboxRY = xboxRY / 10;
+  xboxRX = xboxRX / 10;
+
+  if((ShooterLimitXRight.Get() == 0))
+  {
+    if(xboxRX < 0)
+    {
+      xboxRX = 0;
+    }
+
+    BallShootSide.Set(xboxRX);
+  }
+  else if((ShooterLimitXLeft.Get() == 0))
+  {
+    if(xboxRX > 0)
+    {
+      xboxRX = 0;
+    }
+
+    BallShootSide.Set(xboxRX);
+  }
+  else
+  {
+    BallShootSide.Set(xboxRX);
+  }
+  
+  if((ShooterLimitY.Get() == 0) && (xboxRY > 0))
+  {
+    xboxRY = 0;
+  }
+  
+  BallShootUp.Set(xboxRY);
+
+  BallShootUpper.Set(xboxTrigR);
+  BallShootLower.Set(-xboxTrigR);
 }
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

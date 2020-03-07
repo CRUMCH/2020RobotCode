@@ -30,5 +30,6 @@ class Robot : public frc::TimedRobot {
   void RunIntakeArm();
   void RunColorWheel();
   void ControlByButtons();
+  void ShooterTest();
 
 };
