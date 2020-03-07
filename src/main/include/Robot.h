@@ -15,7 +15,6 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
-  void RoboControl();
   
 
  private:
@@ -25,12 +24,11 @@ class Robot : public frc::TimedRobot {
   std::string m_autoSelected;
   std::string RawColorString(rev::ColorSensorV3::RawColor);
   void RunDriveTrain();
-  void RunLaucherTest();
+  void RunLauncher();
   void RunHanger();
   void RunElevator();
   void RunIntakeArm();
   void RunColorWheel();
   void ControlByButtons();
-  void RunElevatorTest();
 
 };

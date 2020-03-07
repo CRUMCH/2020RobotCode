@@ -45,6 +45,7 @@ frc::Joystick ControllerThingy {2}; // ?
 frc::DigitalInput PresenceSensorFirst {5}; // Photoelectric Sensor ?
 frc::DigitalInput PresenceSensorSecond {6}; // Photoelectric Sensor ?
 
+std::string colorVisionStr = "";
 
 bool psFirstOn = false;
 bool psSecondOn = false;
@@ -79,6 +80,9 @@ void Robot::RobotInit()
 void Robot::RobotPeriodic() 
 {
   colorRead = ColorSensor.GetRawColor();
+  
+  colorVisionStr = RawColorString(colorRead);
+  frc::SmartDashboard::PutString("",colorVisionStr);
 }
 
 void Robot::AutonomousInit() 
@@ -113,17 +117,13 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  // RunDriveTrain();
-  // RunLaucher();
+  RunDriveTrain();
+  RunLauncher();
   RunHanger();
-  // RunElevator();
+  RunElevator();
   RunIntakeArm();
-  // RunColorWheel();
-  // RoboControl();
-
-  // RunLauncherTest();
-  // RunElevatorTest();
-  // ControlByButtons();
+  RunColorWheel();
+  //ControlByButtons();
 }
 
 void Robot::TestPeriodic() 
@@ -131,17 +131,22 @@ void Robot::TestPeriodic()
 
 }
 
-// std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
-// {
-//   std::ostringstream output;
-//   output << "Color: ";
-//   output << rawColor.blue << ", ";
-//   output << rawColor.red << ", ";
-//   output << rawColor.ir << ", ";
-//   output << rawColor.green << ", ";
+std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
+{
+  std::ostringstream output;
+  output << "Color: ";
+  output << rawColor.blue << ", ";
+  output << rawColor.red << ", ";
+  output << rawColor.green << ", ";
   
-//   return output.str();
-// }
+  return output.str();
+}
+
+/*########################################################################################
+
+          Drive Train
+
+########################################################################################*/
 
 void Robot::RunDriveTrain()
 {
@@ -168,7 +173,13 @@ void Robot::RunDriveTrain()
   Mecanums.DriveCartesian(xboxRX , xboxRY , xboxLX);
 }
 
-void Robot::RunLaucherTest()
+/*########################################################################################
+
+          Launcher
+
+########################################################################################*/
+
+void Robot::RunLauncher()
 { 
   double speedwheel = (Yoke.GetRawAxis(2) * -1);
   speedwheel = ((speedwheel + 1.0) / 2.0);
@@ -184,6 +195,12 @@ void Robot::RunLaucherTest()
     BallShootSide.Set(0);
   }
 }
+
+/*########################################################################################
+
+          Hanger
+
+########################################################################################*/
 
 void Robot::RunHanger()
 {
@@ -227,6 +244,12 @@ void Robot::RunHanger()
   }
 }
 
+/*########################################################################################
+
+          Elevator
+
+########################################################################################*/
+
 void Robot::RunElevator()
 {
   psFirstOn = PresenceSensorFirst.Get();
@@ -261,10 +284,11 @@ void Robot::RunElevator()
   }
 }
 
-void Robot::RunElevatorTest()
-{
+/*########################################################################################
 
-}
+          Intake Arm
+
+########################################################################################*/
 
 void Robot::RunIntakeArm()
 {
@@ -301,8 +325,16 @@ void Robot::RunIntakeArm()
   }
 }
 
+/*########################################################################################
+
+          Color Wheel
+
+########################################################################################*/
+
 void Robot::RunColorWheel()
 {
+  std::cout << RawColorString(ColorSensor.GetRawColor()) << std::endl;
+
   if(ControllerThingy.GetRawButtonPressed(1)) // Red
   {
     ColorWheelOpen.StartPulse();
@@ -381,10 +413,11 @@ void Robot::RunColorWheel()
   ColorWheelClose.StartPulse();
 }
 
-void Robot::RoboControl()
-{
+/*########################################################################################
 
-}
+          Button Control Test
+
+########################################################################################*/
 
 void Robot::ControlByButtons()
 {
