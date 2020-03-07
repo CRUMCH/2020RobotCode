@@ -273,16 +273,16 @@ void Robot::RunIntakeArm()
 
     if(intakeButton)
     {
-      BallIntake.Set(frc::Relay::kOn);
+      BallIntake.Set(frc::Relay::kReverse);
 
       IntakeRightOpen.StartPulse();
       IntakeLeftOpen.StartPulse();
 
-    //  ElevatorTop.Set(-.5);
-    //  ElevatorBottom.Set(.5);
+      ElevatorTop.Set(-.5);
+      ElevatorBottom.Set(.5);
 
-    //  BallShootUpper.Set(.8);
-    //  BallShootLower.Set(-.8);
+      BallShootUpper.Set(.8);
+      BallShootLower.Set(-.8);
     }
     else
     {
