@@ -51,12 +51,12 @@ frc::DigitalInput ClimberUpperLimit {5};
 
 // Communication With Arduino WIP
 
-// static constexpr auto usb = frc::SerialPort::Port::kUSB;
-// frc::SerialPort PixyCam {19200, usb};
-// std::string PixyCamStr = new std::string();
-// char PixyArray [80];
-// int pixyCamX = 0;
-// int pixyCamY = 0;
+static constexpr auto usb = frc::SerialPort::Port::kUSB;
+frc::SerialPort PixyCam {19200, usb};
+std::string PixyCamStr = "";
+char PixyArray [80];
+int pixyCamX = 0;
+int pixyCamY = 0;
 
 std::string colorVisionStr = "";
 
@@ -96,13 +96,13 @@ void Robot::RobotPeriodic()
 
   // Communication With Arduino WIP
 
-  // int size = PixyCam.Read(PixyArray, 80);
-  // PixyCamStr.trunc();
-  // for(int i = 0; i < size; i++) 
-  // {
-  //   PixyCamStr += PixyArray[i];
-  // }
-  // std::cout << PixyArray;
+  int size = PixyCam.Read(PixyArray, 80);
+  PixyCamStr.clear();
+  for(int i = 0; i < size; i++) 
+  {
+    PixyCamStr += PixyArray[i];
+  }
+  std::cout << PixyArray;
 }
 
 void Robot::AutonomousInit() 
