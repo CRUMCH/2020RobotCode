@@ -73,6 +73,9 @@ int colorWheelRotationsDoubled = 0;
 
 bool intakeButton = false;
 
+bool lockedOn = false;
+bool blocksSeen = false;
+
 static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
 rev::ColorSensorV3 ColorSensor {i2cPort};
 rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
@@ -142,6 +145,7 @@ void Robot::TeleopPeriodic()
 {
   RunDriveTrain();
   RunLauncher();
+  AutoAim();
   RunHanger();
   RunElevator();
   RunColorWheel();
@@ -227,10 +231,94 @@ void Robot::RunLauncher()
 { 
   if(lockedOn == true)
   {
-    bool shootPrimed
-    if(Xbox.GetRawButtonPresse())
+    BallShootUpper.Set(.8)
+    BallShootLower.Set(-.8)
+
+    
+  }
+}
+
+/*########################################################################################
+
+          Auto Aim
+
+########################################################################################*/
+
+void Robot::AutoAim()
+{
+  bool xboxTargettingSwitch = false;
+  bool topRotationSwitch = false;
+
+  if(blockX > /*XValue*/ && blockX < /*XValue2*/ && blockY > /*YValue1*/ && blockY < /*YValue2*/)
+  {
+    lockedOn = true;
+    BallShootSide.Set()
+  }
+  else
+  {
+    lockedOn = false;
+  }
+  
+  if(!lockedOn)
+  {
+    if(blocksSeen)
     {
-      
+      xboxTargettingSwitch = false;
+
+      if(blockX > /*XValue1*/)
+      {
+        BallShootSide.Set(0.25);
+      }
+      else if(blockX < /*XValue2*/) 
+      {
+        BallShootSide.Set(-0.25);
+      }
+      else
+      {
+        BallShootSide.Set(0);
+      }
+
+      if(blockY > /*YValue1*/)
+      {
+        BallShootUp.Set(0.1);
+      }
+      else if(blockY < /*YValue2*/)
+      {
+        BallShootUp.Set(-0.1);
+      }
+      else
+      {
+        BallShootUp.Set(0);
+      }
+    }
+    else
+    {
+      if(xbox.GetRawButtonPressed(4))
+      {
+        xboxTargettingSwitch = true;
+      }
+
+      if(xboxTargettingSwitch = true)
+      {
+        if(shooterLimitXLeft.Get() = 1)
+        {
+          topRotationSwitch = true;
+        }
+
+        if(shooterLimitXRight.Get() = 1)
+        {
+          topRotationSwitch = false;
+        }
+
+        if(topRotationSwitch)
+        {
+          BallShootSide.Set(.25);
+        }
+        else
+        {
+          BallShootSide.Set(-.25);
+        }
+      }
     }
   }
 }

@@ -25,11 +25,11 @@ class Robot : public frc::TimedRobot {
   std::string RawColorString(rev::ColorSensorV3::RawColor);
   void RunDriveTrain();
   void RunLauncher();
+  void AutoAim();
   void RunHanger();
   void RunElevator();
   void RunIntakeArm();
   void RunColorWheel();
   void ControlByButtons();
   void ShooterTest();
-
 };
