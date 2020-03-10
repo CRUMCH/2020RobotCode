@@ -140,34 +140,35 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  // RunDriveTrain();
-  // RunLauncher();
-  // RunHanger();
-  // RunElevator();
-  // RunIntakeArm();
-  // RunColorWheel();
+  RunDriveTrain();
+  RunLauncher();
+  RunHanger();
+  RunElevator();
+  RunColorWheel();
+
   // ControlByButtons();
-  ShooterTest();
+  // ShooterTest();
+  // RunIntakeArm();
 
-  if(Xbox.GetRawButton(1))
-  {
-  std::cout << psFirstVal << std::endl;
-  }
+  // if(Xbox.GetRawButton(1))
+  // {
+  // std::cout << psFirstVal << std::endl;
+  // }
   
-  if(Xbox.GetRawButton(2))
-  {
-    std::cout << ShooterLimitY.Get() << std::endl;
-  }
+  // if(Xbox.GetRawButton(2))
+  // {
+  //   std::cout << ShooterLimitY.Get() << std::endl;
+  // }
 
-  if(Xbox.GetRawButton(3))
-  {
-    std::cout << ShooterLimitXRight.Get() << std::endl;
-  }
+  // if(Xbox.GetRawButton(3))
+  // {
+  //   std::cout << ShooterLimitXRight.Get() << std::endl;
+  // }
 
-  if(Xbox.GetRawButton(4))
-  {
-    std::cout << ShooterLimitXLeft.Get() << std::endl;
-  }
+  // if(Xbox.GetRawButton(4))
+  // {
+  //   std::cout << ShooterLimitXLeft.Get() << std::endl;
+  // }
 }
 
 void Robot::TestPeriodic() 
@@ -224,17 +225,13 @@ void Robot::RunDriveTrain()
 
 void Robot::RunLauncher()
 { 
-  
-
-  if(Xbox.GetRawButton(1))
+  if(lockedOn == true)
   {
-    BallShootUp.Set(.8);
-    BallShootSide.Set(.8);
-  }
-  else 
-  {
-    BallShootUp.Set(0);
-    BallShootSide.Set(0);
+    bool shootPrimed
+    if(Xbox.GetRawButtonPresse())
+    {
+      
+    }
   }
 }
 
