@@ -39,12 +39,15 @@ frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
 frc::Joystick ControllerThingy {2}; // ?
 
+// PWM ports 10-19 refer to those on the Rev MoreBoard
+
 frc::DigitalInput PresenceSensorFirst {5}; // Photoelectric Sensor ?
 frc::DigitalInput PresenceSensorSecond {6}; // Photoelectric Sensor ?
+int psFirstVal = PresenceSensorFirst.Get();
 
 frc::DigitalInput ShooterLimitY {0};
-frc::DigitalInput ShooterLimitXRight {1};
-frc::DigitalInput ShooterLimitXLeft {2};
+frc::DigitalInput ShooterLimitXRight {2};
+frc::DigitalInput ShooterLimitXLeft {1};
 frc::DigitalInput BalanceLeft {3};
 frc::DigitalInput BalanceRight {4};
 frc::DigitalInput ClimberUpperLimit {5};
@@ -137,14 +140,34 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  RunDriveTrain();
-  RunLauncher();
-  RunHanger();
-  RunElevator();
-  RunIntakeArm();
-  RunColorWheel();
-  ControlByButtons();
+  // RunDriveTrain();
+  // RunLauncher();
+  // RunHanger();
+  // RunElevator();
+  // RunIntakeArm();
+  // RunColorWheel();
+  // ControlByButtons();
   ShooterTest();
+
+  if(Xbox.GetRawButton(1))
+  {
+  std::cout << psFirstVal << std::endl;
+  }
+  
+  if(Xbox.GetRawButton(2))
+  {
+    std::cout << ShooterLimitY.Get() << std::endl;
+  }
+
+  if(Xbox.GetRawButton(3))
+  {
+    std::cout << ShooterLimitXRight.Get() << std::endl;
+  }
+
+  if(Xbox.GetRawButton(4))
+  {
+    std::cout << ShooterLimitXLeft.Get() << std::endl;
+  }
 }
 
 void Robot::TestPeriodic() 
@@ -566,9 +589,6 @@ void Robot::ShooterTest()
   double xboxRY = Xbox.GetRawAxis(5);
   double xboxTrigR = Xbox.GetRawAxis(3);
 
-  xboxRY = xboxRY / 10;
-  xboxRX = xboxRX / 10;
-
   if((ShooterLimitXRight.Get() == 0))
   {
     if(xboxRX < 0)
@@ -576,7 +596,7 @@ void Robot::ShooterTest()
       xboxRX = 0;
     }
 
-    BallShootSide.Set(xboxRX);
+    BallShootSide.Set(xboxRX / 10);
   }
   else if((ShooterLimitXLeft.Get() == 0))
   {
@@ -585,11 +605,11 @@ void Robot::ShooterTest()
       xboxRX = 0;
     }
 
-    BallShootSide.Set(xboxRX);
+    BallShootSide.Set(xboxRX / 10);
   }
   else
   {
-    BallShootSide.Set(xboxRX);
+    BallShootSide.Set(xboxRX / 10);
   }
   
   if((ShooterLimitY.Get() == 0) && (xboxRY > 0))
@@ -597,7 +617,7 @@ void Robot::ShooterTest()
     xboxRY = 0;
   }
   
-  BallShootUp.Set(xboxRY);
+  BallShootUp.Set(xboxRY / 10);
 
   BallShootUpper.Set(xboxTrigR);
   BallShootLower.Set(-xboxTrigR);
