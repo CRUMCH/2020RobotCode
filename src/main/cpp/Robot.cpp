@@ -1,10 +1,12 @@
 
 #include "Robot.h"
+#include "MyEncoder.h"
 #include <iostream>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <ctre/phoenix.h>
 #include <frc/WPILib.h>
 #include "rev/ColorSensorV3.h"
+#include "AutoAim.h"
 
 WPI_VictorSPX WheelBackLeft {3};
 WPI_VictorSPX WheelBackRight {4};
@@ -80,6 +82,21 @@ static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
 rev::ColorSensorV3 ColorSensor {i2cPort};
 rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
 
+//Encoders
+frc::Encoder frcShooterTopEncoder(10, 12, false, frc::CounterBase::EncodingType::k4X); //DIO ports
+frc::Encoder frcShooterBottomEncoder(15, 16, false, frc::CounterBase::EncodingType::k4X); //DIO Ports
+frc::Encoder frcShooterRaiseEncoder(17, 18, false, frc::CounterBase::EncodingType::k4X); //DIO ports
+
+MyEncoder ShooterTopEncoder(&frcShooterTopEncoder, 2048);
+MyEncoder ShooterBottomEncoder(&frcShooterBottomEncoder, 2048);
+MyEncoder ShooterRaiseEncoder(&frcShooterRaiseEncoder, 1024);
+
+frc::PIDController shooterTopPID(.8, 0, 0, &ShooterTopEncoder, &BallShootUpper); // Tune
+frc::PIDController shooterBottomPID(.1, .1, .3, &ShooterBottomEncoder, &BallShootLower); // Tune
+
+//AutoAim
+AutoAim autoAim(&ShooterRaiseEncoder, &ShooterLimitXLeft, &ShooterLimitXRight, &ShooterLimitY, &BallShootUp, &BallShootSide);
+
 void Robot::RobotInit() 
 {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
@@ -91,6 +108,12 @@ void Robot::RobotInit()
 
   ColorWheelOpen.SetPulseDuration(0.1);
   ColorWheelClose.SetPulseDuration(0.1);
+
+  shooterTopPID.SetInputRange(-10.0, 10.0); // Tune Values
+  shooterBottomPID.SetInputRange(-10.0, 10.0); // Tune Values
+
+  shooterTopPID.SetOutputRange(-1.0,1.0);
+  shooterBottomPID.SetOutputRange(-1.0,1.0);
 }
 
 void Robot::RobotPeriodic() 
@@ -143,12 +166,12 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  RunDriveTrain();
-  RunLauncher();
-  AutoAim();
-  RunHanger();
-  RunElevator();
-  RunColorWheel();
+  // RunDriveTrain();
+  // RunLauncher();
+  // RunHanger();
+  // RunElevator();
+  // RunColorWheel();
+  // autoAim.Run();
 
   // ControlByButtons();
   // ShooterTest();
@@ -227,14 +250,38 @@ void Robot::RunDriveTrain()
 
 ########################################################################################*/
 
+bool launcherStarted = false;
+double shooterTopStart = 0;
+
 void Robot::RunLauncher()
-{ 
+{
   if(lockedOn == true)
   {
-    BallShootUpper.Set(.8)
-    BallShootLower.Set(-.8)
+    if(!launcherStarted)
+    {
+      shooterTopStart = ShooterTopEncoder.GetDistance();
 
-    
+      launcherStarted = true;
+
+      shooterTopPID.SetSetpoint(4);
+      shooterBottomPID.SetSetpoint(4);
+
+      shooterTopPID.Enable();
+      shooterBottomPID.Enable();
+    }
+    else if(launcherStarted && ShooterTopEncoder.GetDistance() - shooterTopStart > 100) // Tune Value
+    {
+      if(launcherStarted)
+      {
+        shooterTopPID.Disable();
+        shooterBottomPID.Disable();
+
+        BallShootUpper.Set(0);
+        BallShootLower.Set(0);
+        
+        launcherStarted = false;
+      }
+    } 
   }
 }
 
@@ -244,85 +291,6 @@ void Robot::RunLauncher()
 
 ########################################################################################*/
 
-void Robot::AutoAim()
-{
-  bool xboxTargettingSwitch = false;
-  bool topRotationSwitch = false;
-
-  if(blockX > /*XValue*/ && blockX < /*XValue2*/ && blockY > /*YValue1*/ && blockY < /*YValue2*/)
-  {
-    lockedOn = true;
-    BallShootSide.Set()
-  }
-  else
-  {
-    lockedOn = false;
-  }
-  
-  if(!lockedOn)
-  {
-    if(blocksSeen)
-    {
-      xboxTargettingSwitch = false;
-
-      if(blockX > /*XValue1*/)
-      {
-        BallShootSide.Set(0.25);
-      }
-      else if(blockX < /*XValue2*/) 
-      {
-        BallShootSide.Set(-0.25);
-      }
-      else
-      {
-        BallShootSide.Set(0);
-      }
-
-      if(blockY > /*YValue1*/)
-      {
-        BallShootUp.Set(0.1);
-      }
-      else if(blockY < /*YValue2*/)
-      {
-        BallShootUp.Set(-0.1);
-      }
-      else
-      {
-        BallShootUp.Set(0);
-      }
-    }
-    else
-    {
-      if(xbox.GetRawButtonPressed(4))
-      {
-        xboxTargettingSwitch = true;
-      }
-
-      if(xboxTargettingSwitch = true)
-      {
-        if(shooterLimitXLeft.Get() = 1)
-        {
-          topRotationSwitch = true;
-        }
-
-        if(shooterLimitXRight.Get() = 1)
-        {
-          topRotationSwitch = false;
-        }
-
-        if(topRotationSwitch)
-        {
-          BallShootSide.Set(.25);
-        }
-        else
-        {
-          BallShootSide.Set(-.25);
-        }
-      }
-    }
-  }
-}
-
 /*########################################################################################
 
           Hanger
@@ -331,8 +299,8 @@ void Robot::AutoAim()
 
 void Robot::RunHanger()
 {
-  int customYAxis = Xbox.GetRawAxis(5);
-  int customXAxis = Xbox.GetRawAxis(4);
+  double customYAxis = Xbox.GetRawAxis(5);
+  double customXAxis = Xbox.GetRawAxis(4);
   
   if(customYAxis < .1 && customYAxis > -.1)
   {
