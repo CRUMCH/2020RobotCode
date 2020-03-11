@@ -167,7 +167,7 @@ void Robot::TeleopInit()
 void Robot::TeleopPeriodic() 
 {
   // RunDriveTrain();
-  // RunLauncher();
+  RunLauncher();
   // RunHanger();
   // RunElevator();
   // RunColorWheel();
@@ -255,8 +255,8 @@ double shooterTopStart = 0;
 
 void Robot::RunLauncher()
 {
-  if(lockedOn == true)
-  {
+ if(Xbox.GetRawButtonPressed(4))
+ {
     if(!launcherStarted)
     {
       shooterTopStart = ShooterTopEncoder.GetDistance();
@@ -280,6 +280,9 @@ void Robot::RunLauncher()
         BallShootLower.Set(0);
         
         launcherStarted = false;
+
+      std::cout << ShooterTopEncoder.GetRevs() << std::endl;
+      std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
       }
     } 
   }
