@@ -21,81 +21,87 @@ AutoAim::AutoAim(MyEncoder *initShooterRaiseEncoder, frc::DigitalInput *initShoo
     BallShootSide = initBallShootSide;
 }
 
-bool xboxTargettingSwitch = false;
 bool topRotationSwitch = false;
+bool lockedOn = false;
+int searchingTimes = 0;
 
 void AutoAim::RunAutoAim()
 {
-//   if(blockX > /*XValue*/ && blockX < /*XValue2*/ && blockY > /*YValue1*/ && blockY < /*YValue2*/)
-//   {
-//     lockedOn = true;
-//     // BallShootSide->Set();
-//   }
-//   else
-//   {
-//     lockedOn = false;
-//   }
+  if(blockX > /*XValue*/ && blockX < /*XValue2*/ && blockY > /*YValue1*/ && blockY < /*YValue2*/)
+  {
+    lockedOn = true;
+
+    BallShootSide->Set(0);
+    BallShootUp->Set(0);
+  }
+  else
+  {
+    lockedOn = false;
+  }
   
-//   if(!lockedOn)
-//   {
-//     if(blocksSeen)
-//     {
-//       xboxTargettingSwitch = false;
+  if(!lockedOn)
+  {
+    if(blocksSeen)
+    {
+      if(blockX > /*XValue1*/)
+      {
+        BallShootSide->Set(0.25);
+      }
+      else if(blockX < /*XValue2*/) 
+      {
+        BallShootSide->Set(-0.25);
+      }
+      else
+      {
+        BallShootSide->Set(0);
+      }
 
-//       if(blockX > /*XValue1*/)
-//       {
-//         BallShootSide->Set(0.25);
-//       }
-//       else if(blockX < /*XValue2*/) 
-//       {
-//         BallShootSide->Set(-0.25);
-//       }
-//       else
-//       {
-//         BallShootSide->Set(0);
-//       }
+      if(blockY > /*YValue1*/)
+      {
+        BallShootUp->Set(0.1);
+      }
+      else if(blockY < /*YValue2*/)
+      {
+        BallShootUp->Set(-0.1);
+      }
+      else
+      {
+        BallShootUp->Set(0);
+      }
+    }
+    else
+    {
+        if(searchingTimes != 2)
+        {
+            if(shooterLimitXLeft->Get() == 1 && topRotationSwitch = false)
+            {
+              topRotationSwitch = true;
+              searchingTimes = searchingTimes + 1
+            }
 
-//       if(blockY > /*YValue1*/)
-//       {
-//         BallShootUp->Set(0.1);
-//       }
-//       else if(blockY < /*YValue2*/)
-//       {
-//         BallShootUp->Set(-0.1);
-//       }
-//       else
-//       {
-//         BallShootUp->Set(0);
-//       }
-//     }
-//     else
-//     {
-//       if(xbox.GetRawButtonPressed(4))
-//       {
-//         xboxTargettingSwitch = true;
-//       }
+            if(shooterLimitXRight->Get() == 1 && topRotationSwitch = true)
+            {
+              topRotationSwitch = false;
+            }
 
-//       if(xboxTargettingSwitch = true)
-//       {
-//         if(shooterLimitXLeft->Get() = 1)
-//         {
-//           topRotationSwitch = true;
-//         }
+            if(topRotationSwitch)
+            {
+              BallShootSide->Set(.25);
+            }
+            else
+            {
+              BallShootSide->Set(-.25);
+            }
+        }
+        else
+        {
+            BallShootSide->Set(0);
+            BallShootUp->Set(0);
 
-//         if(shooterLimitXRight->Get() = 1)
-//         {
-//           topRotationSwitch = false;
-//         }
+            searchingTimes = 0;
 
-//         if(topRotationSwitch)
-//         {
-//           BallShootSide->Set(.25);
-//         }
-//         else
-//         {
-//           BallShootSide->Set(-.25);
-//         }
-//       }
-//     }
-//   }
+            std::cout << "FindBlocks Failed" << std::endl;
+        }
+    }
+  }
 }

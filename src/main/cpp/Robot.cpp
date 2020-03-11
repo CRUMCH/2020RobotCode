@@ -167,11 +167,16 @@ void Robot::TeleopInit()
 void Robot::TeleopPeriodic() 
 {
   // RunDriveTrain();
-  RunLauncher();
+  // RunLauncher();
   // RunHanger();
   // RunElevator();
   // RunColorWheel();
   // autoAim.Run();
+
+  // if(Xbox.GetRawButtonPressed(4))
+  // {
+  //   autoAim.Run();
+  // }
 
   // ControlByButtons();
   // ShooterTest();
