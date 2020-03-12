@@ -13,8 +13,7 @@ AutoAim::AutoAim(MyEncoder *initShooterRaiseEncoder,
   int initDesiredX1,
   int initDesiredX2,
   int initDesiredEncoderDistance1,
-  int initDesiredEncoderDistance2,
-  int initCurrentX) 
+  int initDesiredEncoderDistance2) 
 {
   ShooterRaiseEncoder = initShooterRaiseEncoder;
   ShooterLimitXLeft = initShooterLimitXLeft;
@@ -27,7 +26,6 @@ AutoAim::AutoAim(MyEncoder *initShooterRaiseEncoder,
   desiredX2 = initDesiredX2;
   desiredEncoderDistance1 = initDesiredEncoderDistance1;
   desiredEncoderDistance2 = initDesiredEncoderDistance2;
-  currentX = initCurrentX;
 }
 
 
@@ -39,6 +37,11 @@ bool AutoAim::GetLockedOn()
 void AutoAim::SetLockedOn(bool newLockedOn)
 {
   lockedOn = newLockedOn;
+}
+
+void AutoAim::SetCurrentX(int newCurrentX)
+{
+  currentX = newCurrentX;
 }
 
 void AutoAim::RunAutoAim()

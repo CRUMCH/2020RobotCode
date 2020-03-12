@@ -28,15 +28,10 @@ frc::VictorSP ElevatorBottom {1};
 frc::VictorSP HangerUp {4};
 frc::VictorSP HangerSide {0};
 
-frc::VictorSP ColorWheelSpin {7}; // ?
-
 frc::Relay BallIntake {2};
 
 frc::Solenoid IntakeOpen {0};
 frc::Solenoid IntakeClose {1};
-
-frc::Solenoid ColorWheelOpen {2};
-frc::Solenoid ColorWheelClose {3};
 
 frc::Joystick Xbox {0};
 frc::Joystick Yoke {1};
@@ -61,31 +56,27 @@ static constexpr auto usb = frc::SerialPort::Port::kUSB;
 frc::SerialPort PixyCam {19200, usb};
 std::string PixyCamStr = "";
 char PixyArray [80];
+char PixyArrayOutput [1];
 int pixyCamX = 0;
 int pixyCamY = 0;
 
 int desiredEncoderDistance1 = 0;
 int desiredEncoderDistance2 = 0;
 
-std::string colorVisionStr = "";
-
 bool psFirstOn = false;
 bool psSecondOn = false;
 bool psSwitched = false;
 int ballCount = 0;
 
-bool colorWheelSwitch = false;
-int colorWheelRotationsDoubled = 0;
-
 bool intakeButton = false;
 
-bool lockedOn = false;
 bool blocksSeen = false;
 bool aimSwitch = false;
+bool stringComplete =  false;
 
-static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
-rev::ColorSensorV3 ColorSensor {i2cPort};
-rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
+// static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
+// rev::ColorSensorV3 ColorSensor {i2cPort};
+// rev::ColorSensorV3::RawColor colorRead = ColorSensor.GetRawColor();
 
 //Encoders
 frc::Encoder frcShooterTopEncoder(10, 12, false, frc::CounterBase::EncodingType::k4X); //DIO ports
@@ -110,8 +101,7 @@ AutoAim autoAim(&ShooterRaiseEncoder,
  20,
  -20,
  desiredEncoderDistance1,
- desiredEncoderDistance2,
- pixyCamX);
+ desiredEncoderDistance2);
 
 void Robot::RobotInit() 
 {
@@ -122,9 +112,6 @@ void Robot::RobotInit()
   IntakeOpen.SetPulseDuration(0.1);
   IntakeClose.SetPulseDuration(0.1);
 
-  ColorWheelOpen.SetPulseDuration(0.1);
-  ColorWheelClose.SetPulseDuration(0.1);
-
   shooterTopPID.SetInputRange(-10.0, 10.0); // Tune Values
   shooterBottomPID.SetInputRange(-10.0, 10.0); // Tune Values
 
@@ -134,12 +121,6 @@ void Robot::RobotInit()
 
 void Robot::RobotPeriodic() 
 {
-
-  colorRead = ColorSensor.GetRawColor();
-  
-  colorVisionStr = RawColorString(colorRead);
-  frc::SmartDashboard::PutString("",colorVisionStr);
-
   // Communication With Arduino WIP
 
   int size = PixyCam.Read(PixyArray, 80);
@@ -147,18 +128,13 @@ void Robot::RobotPeriodic()
   for(int i = 0; i < size; i++) 
   {
     PixyCamStr += PixyArray[i];
+    if(PixyArray[i] == '\n')
+    {
+      // PixyCam.Write(PixyArrayOutput, 1);
+      // PixyCam.Flush();
+    }
   }
-  std::cout << PixyArray;
-
-  if(!yMotorSet && ShooterLimitY.Get() == 0)
-  {
-    BallShootUp.Set(.1);
-  }
-  else
-  {
-    frcShooterRaiseEncoder.Reset();
-    yMotorSet = true;
-  }
+//  std::cout << PixyArray;
 }
 
 void Robot::AutonomousInit() 
@@ -169,7 +145,16 @@ void Robot::AutonomousInit()
   std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
   if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
+    // if(!yMotorSet && ShooterLimitY.Get() == 0)
+    // {
+    //   BallShootUp.Set(.1);
+    // }
+    // else
+    // {
+    //   frcShooterRaiseEncoder.Reset();
+    //   yMotorSet = true;
+    // }
+  
   } else {
     // Default Auto goes here
   }
@@ -188,31 +173,35 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit() 
 {
-
+  PixyArrayOutput[0] = '\n';
+  PixyCam.Write(PixyArrayOutput, 1);
+  PixyCam.Flush();
 }
 
 void Robot::TeleopPeriodic() 
 {
-  autoAim.SetLockedOn(lockedOn);
+  // autoAim.SetLockedOn(lockedOn);
+
+  // if(Xbox.GetRawButtonPressed(4))
+  // {
+  //   aimSwitch = true;
+  // }
+
+  // RunDriveTrain();
+  // RunHanger();
+  // RunElevator();
+  // RunColorWheel();
+
+  // if(aimSwitch)
+  // {
+  //   autoAim.RunAutoAim();
+  // }
+
+  RunLauncher();
 
   if(Xbox.GetRawButtonPressed(4))
   {
-    aimSwitch = true;
-  }
-
-  RunDriveTrain();
-  RunHanger();
-  RunElevator();
-  RunColorWheel();
-
-  if(aimSwitch)
-  {
-    autoAim.RunAutoAim();
-  }
-
-  if(lockedOn)
-  {
-    RunLauncher();
+    autoAim.SetLockedOn(true);
   }
 
   
@@ -249,17 +238,6 @@ void Robot::TeleopPeriodic()
 void Robot::TestPeriodic() 
 {
 
-}
-
-std::string Robot::RawColorString(rev::ColorSensorV3::RawColor rawColor)
-{
-  std::ostringstream output;
-  output << "Color: ";
-  output << rawColor.blue << ", ";
-  output << rawColor.red << ", ";
-  output << rawColor.green << ", ";
-  
-  return output.str();
 }
 
 /*########################################################################################
@@ -303,7 +281,7 @@ double shooterTopStart = 0;
 
 void Robot::RunLauncher()
 {
- if(Xbox.GetRawButtonPressed(4))
+ if(autoAim.GetLockedOn())
  {   
     std::cout << ShooterTopEncoder.GetRevs() << std::endl;
     std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
@@ -315,7 +293,7 @@ void Robot::RunLauncher()
       launcherStarted = true;
 
       shooterTopPID.SetSetpoint(2);
-      shooterBottomPID.SetSetpoint(2);
+      shooterBottomPID.SetSetpoint(-2);
 
       shooterTopPID.Enable();
       shooterBottomPID.Enable();
@@ -350,8 +328,11 @@ void Robot::RunLauncher()
 
         if(ShooterLimitY.Get() && ShooterLimitXLeft.Get())
         {
+          BallShootSide.Set(0);
+          BallShootUp.Set(0);
+
           launcherStarted = false;
-          lockedOn = false;
+          autoAim.SetLockedOn(false);
         }
       }
     } 
@@ -366,44 +347,44 @@ void Robot::RunLauncher()
 
 void Robot::RunHanger()
 {
-  double customYAxis = Xbox.GetRawAxis(5);
-  double customXAxis = Xbox.GetRawAxis(4);
+//   double customYAxis = Xbox.GetRawAxis(5);
+//   double customXAxis = Xbox.GetRawAxis(4);
   
-  if(customYAxis < .1 && customYAxis > -.1)
-  {
-    customYAxis = 0;
-  }
+//   if(customYAxis < .1 && customYAxis > -.1)
+//   {
+//     customYAxis = 0;
+//   }
 
-  if(customXAxis < .1 && customXAxis > -.1)
-  {
-    customXAxis = 0;
-  }
+//   if(customXAxis < .1 && customXAxis > -.1)
+//   {
+//     customXAxis = 0;
+//   }
 
-  if(customYAxis > 0)
-  {
-    HangerUp.Set(.5);
-  }
-  else if(customYAxis < 0)
-  {
-    HangerUp.Set(-.5);
-  }
-  else
-  {
-    HangerUp.Set(0);
-  }
+//   if(customYAxis > 0)
+//   {
+//     HangerUp.Set(.5);
+//   }
+//   else if(customYAxis < 0)
+//   {
+//     HangerUp.Set(-.5);
+//   }
+//   else
+//   {
+//     HangerUp.Set(0);
+//   }
 
-  if(customXAxis > 0)
-  {
-    HangerSide.Set(.5);
-  }
-  else if(customXAxis < 0)
-  {
-    HangerSide.Set(-.5);
-  }
-  else
-  {
-    HangerSide.Set(0);
-  }
+//   if(customXAxis > 0)
+//   {
+//     HangerSide.Set(.5);
+//   }
+//   else if(customXAxis < 0)
+//   {
+//     HangerSide.Set(-.5);
+//   }
+//   else
+//   {
+//     HangerSide.Set(0);
+//   }
 }
 
 /*########################################################################################
@@ -424,7 +405,7 @@ void Robot::RunElevator()
     if(psFirstOn == true)
     {
       ElevatorTop.Set(.5);
-      ElevatorBottom.Set(.5);
+      ElevatorBottom.Set(-.5);
 
       if(psSwitched == false)
       {
@@ -446,259 +427,6 @@ void Robot::RunElevator()
 
 /*########################################################################################
 
-          Intake Arm
-
-########################################################################################*/
-
-void Robot::RunIntakeArm()
-{
-  if(Xbox.GetRawButtonPressed(6))
-  {
-    intakeButton = !intakeButton;
-
-    if(intakeButton)
-    {
-      BallIntake.Set(frc::Relay::kReverse);
-
-      IntakeOpen.StartPulse();
-
-      ElevatorTop.Set(-.5);
-      ElevatorBottom.Set(.5);
-
-      BallShootUpper.Set(.8);
-      BallShootLower.Set(-.8);
-    }
-    else
-    {
-      BallIntake.Set(frc::Relay::kOff);
-
-      IntakeClose.StartPulse();
-
-      ElevatorTop.Set(0);
-      ElevatorBottom.Set(0);
-
-      BallShootUpper.Set(0);
-      BallShootLower.Set(0);
-    }
-  }
-}
-
-/*########################################################################################
-
-          Color Wheel
-
-########################################################################################*/
-
-void Robot::RunColorWheel()
-{
-  std::cout << RawColorString(ColorSensor.GetRawColor()) << std::endl;
-
-  if(ControllerThingy.GetRawButtonPressed(1)) // Red
-  {
-    ColorWheelOpen.StartPulse();
-
-    if(colorRead.blue < 800 && colorRead.green > 200 && colorRead.red > 200) // Search Not Blue
-    {
-      ColorWheelSpin.Set(.15);
-    }
-    else
-    {
-      ColorWheelSpin.Set(0);
-    }
-  }
-  else if(ControllerThingy.GetRawButtonPressed(2)) // Blue
-  {
-    ColorWheelOpen.StartPulse();
-
-    if(colorRead.blue > 200 && colorRead.green > 200 && colorRead.red < 800) // Search Not Red
-    {
-      ColorWheelSpin.Set(.15);
-    }
-    else
-    {
-      ColorWheelSpin.Set(0);
-    }
-  }
-  else if(ControllerThingy.GetRawButtonPressed(3)) // Green
-  {
-    ColorWheelOpen.StartPulse();
-
-    if(colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Not Yellow
-    {
-      ColorWheelSpin.Set(.15);
-    }
-    else
-    {
-      ColorWheelSpin.Set(0);
-    }
-  }
-  else if(ControllerThingy.GetRawButtonPressed(4)) // Yellow
-  {
-    ColorWheelOpen.StartPulse();
-
-    if(colorRead.blue > 200 && colorRead.green < 800 && colorRead.red > 200) // Search Not Green
-    {
-      ColorWheelSpin.Set(.15);
-    }
-    else
-    {
-      ColorWheelSpin.Set(0);
-    }
-  }
-  else if(ControllerThingy.GetRawButtonPressed(5)) // Stage 1 Multi-Spin
-  {
-    ColorWheelOpen.StartPulse();
-
-    if(colorWheelRotationsDoubled != 8) // Checking for if the number of half rotations does not equal 8
-    {
-      ColorWheelSpin.Set(.25);
-      
-      if(colorWheelSwitch == true && colorRead.blue > 800 && colorRead.green > 800 && colorRead.red < 200) // Search Yellow
-      {
-        colorWheelSwitch = false; // Setting bool to false so that it can't count one yellow twice
-        colorWheelRotationsDoubled = colorWheelRotationsDoubled + 1; // Counting this appearence of yellow (1 half turn)
-      }
-      else if(colorWheelSwitch == false && colorRead.blue < 800 && colorRead.green < 800 && colorRead.red > 200) // Search Not Yellow
-      {
-        colorWheelSwitch = true; // Setting bool to true so when "Not Yellow" is found so that future yellow is found later
-      }
-    }
-    else
-    {
-      ColorWheelSpin.Set(0);
-    }
-  }
-  ColorWheelClose.StartPulse();
-}
-
-/*########################################################################################
-
-          Button Control Test
-
-########################################################################################*/
-
-void Robot::ControlByButtons()
-{
-  if(Xbox.GetRawButton(1))
-  {
-    WheelBackLeft.Set(.5);
-  }
-  else
-  {
-    WheelBackLeft.Set(0);
-  }
-  
-  if(Xbox.GetRawButton(2))
-  {
-    WheelBackRight.Set(.5);
-  }
-  else
-  {
-    WheelBackRight.Set(0);
-  }
-
-  if(Xbox.GetRawButton(3))
-  {
-    WheelFrontRight.Set(.5);
-  }
-  else
-  {
-    WheelFrontRight.Set(0);
-  }
-
-  if(Xbox.GetRawButton(4))
-  {
-    WheelFrontLeft.Set(.5);
-  }
-  else
-  {
-    WheelFrontLeft.Set(0);
-  }
-
-  if(Xbox.GetRawButton(5))
-  {
-    BallShootUp.Set(.5);
-  }
-  else
-  {
-    BallShootUp.Set(0);
-  }
-
-  if(Xbox.GetRawButton(6))
-  {
-    BallShootSide.Set(.5);
-  }
-  else
-  {
-    BallShootSide.Set(0);
-  }
-
-  if(Xbox.GetRawButton(7))
-  {
-    BallShootUpper.Set(.5);
-  }
-  else
-  {
-    BallShootUpper.Set(0);
-  }
-
-  if(Xbox.GetRawButton(8))
-  {
-    BallShootLower.Set(.5);
-  }
-  else
-  {
-    BallShootLower.Set(0);
-  }
-
-  if(Xbox.GetRawButton(9))
-  {
-    ColorWheelSpin.Set(.5);
-  }
-  else
-  {
-    ColorWheelSpin.Set(0);
-  }
-
-  if(Xbox.GetRawButton(10))
-  {
-    HangerUp.Set(.5);
-  }
-  else
-  {
-    HangerUp.Set(0);
-  }
-
-  if(Xbox.GetRawButton(1))
-  {
-    HangerSide.Set(.5);
-  }
-  else
-  {
-    HangerSide.Set(0);
-  }
-
-  if(Xbox.GetRawButton(2))
-  {
-    ElevatorTop.Set(.5);
-  }
-  else
-  {
-    ElevatorTop.Set(0);
-  }
-
-  if(Xbox.GetRawButton(3))
-  {
-    ElevatorBottom.Set(.5);
-  }
-  else
-  {
-    ElevatorBottom.Set(0);
-  }
-}
-
-/*########################################################################################
-
           Shooter Test
 
 ########################################################################################*/
@@ -715,29 +443,23 @@ void Robot::ShooterTest()
     {
       xboxRX = 0;
     }
-
-    BallShootSide.Set(xboxRX / 10);
   }
-  else if((ShooterLimitXLeft.Get() == 0))
+  
+  if((ShooterLimitXLeft.Get() == 0))
   {
     if(xboxRX > 0)
     {
       xboxRX = 0;
     }
-
-    BallShootSide.Set(xboxRX / 10);
-  }
-  else
-  {
-    BallShootSide.Set(xboxRX / 10);
   }
   
-  if((ShooterLimitY.Get() == 0) && (xboxRY > 0))
+  if((ShooterLimitY.Get() == 0) && (xboxRY < 0))
   {
     xboxRY = 0;
   }
   
-  BallShootUp.Set(xboxRY / 10);
+  BallShootUp.Set(xboxRY);
+  BallShootSide.Set(xboxRX);
 
   BallShootUpper.Set(xboxTrigR);
   BallShootLower.Set(-xboxTrigR);

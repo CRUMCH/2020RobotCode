@@ -17,11 +17,12 @@ class AutoAim
    int initDesiredX1, // 8
    int initDesiredX2, // 9
    int initDesiredTopDistance1, // 10
-   int initDesiredTopDistance2,
-   int initCurrentX);
+   int initDesiredTopDistance2);
   void RunAutoAim();
   bool GetLockedOn();
   void SetLockedOn(bool newLockedOn);
+  void SetCurrentX(int newCurrentX);
+
  private:
   MyEncoder *ShooterRaiseEncoder;
   frc::DigitalInput *ShooterLimitXLeft;
@@ -32,11 +33,11 @@ class AutoAim
   bool blocksSeen;
   int desiredX1;
   int desiredX2;
+  int currentX;
   int desiredEncoderDistance1;
   int desiredEncoderDistance2;
   int desiredTopDistance1;
   int desiredTopDistance2;
-  int currentX;
   bool lockedOn;
   bool topRotationSwitch = false;
   int searchingTimes = 0;

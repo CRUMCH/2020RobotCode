@@ -26,8 +26,5 @@ class Robot : public frc::TimedRobot {
   void RunLauncher();
   void RunHanger();
   void RunElevator();
-  void RunIntakeArm();
-  void RunColorWheel();
-  void ControlByButtons();
   void ShooterTest();
 };
