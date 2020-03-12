@@ -1,53 +1,56 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
 
+#pragma once
 #include "AutoAim.h"
 #include <frc/WPILib.h>
 #include <ctre/phoenix.h>
 
-AutoAim::AutoAim(MyEncoder *initShooterRaiseEncoder, frc::DigitalInput *initShooterLimitXLeft,
-    frc::DigitalInput *initShooterLimitXRight, frc::DigitalInput *initShooterLimitY,
-    WPI_TalonSRX *initBallShootUp, WPI_TalonSRX *initBallShootSide) 
+AutoAim::AutoAim(MyEncoder *initShooterRaiseEncoder,
+  frc::DigitalInput *initShooterLimitXLeft,
+  frc::DigitalInput *initShooterLimitXRight,
+  frc::DigitalInput *initShooterLimitY,
+  WPI_TalonSRX *initBallShootUp,
+  WPI_TalonSRX *initBallShootSide,
+  bool initLockedOn,
+  bool initBlocksSeen) 
 {
-    ShooterRaiseEncoder = initShooterRaiseEncoder;
-    ShooterLimitXLeft = initShooterLimitXLeft;
-    ShooterLimitXRight = initShooterLimitXRight;
-    ShooterLimitY = initShooterLimitY;
-    BallShootUp = initBallShootUp;
-    BallShootSide = initBallShootSide;
+  ShooterRaiseEncoder = initShooterRaiseEncoder;
+  ShooterLimitXLeft = initShooterLimitXLeft;
+  ShooterLimitXRight = initShooterLimitXRight;
+  ShooterLimitY = initShooterLimitY;
+  BallShootUp = initBallShootUp;
+  BallShootSide = initBallShootSide;
+  lockedOn = initLockedOn;
+  blocksSeen = initBlocksSeen;
 }
-
-bool topRotationSwitch = false;
-bool lockedOn = false;
-int searchingTimes = 0;
 
 void AutoAim::RunAutoAim()
 {
-  if(blockX > /*XValue*/ && blockX < /*XValue2*/ && blockY > /*YValue1*/ && blockY < /*YValue2*/)
-  {
-    lockedOn = true;
+  bool topRotationSwitch = false;
+  int searchingTimes = 0;
 
-    BallShootSide->Set(0);
-    BallShootUp->Set(0);
-  }
-  else
-  {
-    lockedOn = false;
-  }
+  double yEncoderRevs = ShooterRaiseEncoder->GetDistance();
   
-  if(!lockedOn)
+  if(blocksSeen)
   {
-    if(blocksSeen)
+    if(/*blockX > /*XValue && blockX < /*XValue2 && blockY > /*YValue1 && blockY < /*YValue2*/ true)
     {
-      if(blockX > /*XValue1*/)
+      lockedOn = true;
+
+      BallShootSide->Set(0);
+      BallShootUp->Set(0);
+    }
+    else
+    {
+      lockedOn = false;
+    }
+    
+    if(!lockedOn)
+    {
+      if(/*blockX > /*XValue1 &&*/ ShooterLimitXLeft->Get() == 1)
       {
         BallShootSide->Set(0.25);
       }
-      else if(blockX < /*XValue2*/) 
+      else if(/*blockX < /*XValue2 &&*/ ShooterLimitXRight->Get() == 1) 
       {
         BallShootSide->Set(-0.25);
       }
@@ -56,11 +59,11 @@ void AutoAim::RunAutoAim()
         BallShootSide->Set(0);
       }
 
-      if(blockY > /*YValue1*/)
+      if(/*blockY > /*YValue1 &&*/ ShooterLimitY->Get() == 1)
       {
         BallShootUp->Set(0.1);
       }
-      else if(blockY < /*YValue2*/)
+      else if(/*blockY < /*YValue2 && */ true)
       {
         BallShootUp->Set(-0.1);
       }
@@ -69,39 +72,37 @@ void AutoAim::RunAutoAim()
         BallShootUp->Set(0);
       }
     }
+  }
+  else
+  {
+    if(searchingTimes != 2)
+    {
+      if(/*ShooterLimitXLeft->Get() == 1 && topRotationSwitch = false*/ true)
+      {
+        topRotationSwitch = true;
+        searchingTimes = searchingTimes + 1;
+      }
+
+      if(/*ShooterLimitXRight->Get() == 1 && topRotationSwitch = true*/ true)
+      {
+        topRotationSwitch = false;
+      }
+
+      if(topRotationSwitch)
+      {
+        BallShootSide->Set(.25);
+      }
+      else
+      {
+        BallShootSide->Set(-.25);
+      }
+    }
     else
     {
-        if(searchingTimes != 2)
-        {
-            if(shooterLimitXLeft->Get() == 1 && topRotationSwitch = false)
-            {
-              topRotationSwitch = true;
-              searchingTimes = searchingTimes + 1
-            }
+      BallShootSide->Set(0);
+      BallShootUp->Set(0);
 
-            if(shooterLimitXRight->Get() == 1 && topRotationSwitch = true)
-            {
-              topRotationSwitch = false;
-            }
-
-            if(topRotationSwitch)
-            {
-              BallShootSide->Set(.25);
-            }
-            else
-            {
-              BallShootSide->Set(-.25);
-            }
-        }
-        else
-        {
-            BallShootSide->Set(0);
-            BallShootUp->Set(0);
-
-            searchingTimes = 0;
-
-            std::cout << "FindBlocks Failed" << std::endl;
-        }
+      searchingTimes = 0;
     }
   }
 }

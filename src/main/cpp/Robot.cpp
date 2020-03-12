@@ -1,4 +1,5 @@
 
+#pragma once
 #include "Robot.h"
 #include "MyEncoder.h"
 #include <iostream>
@@ -16,6 +17,7 @@ WPI_VictorSPX WheelFrontLeft {1};
 frc::MecanumDrive Mecanums {WheelFrontLeft , WheelBackLeft , WheelFrontRight , WheelBackRight};
 
 WPI_TalonSRX BallShootUp {1};
+  bool yMotorSet = false;
 WPI_TalonSRX BallShootSide {2};
 
 frc::VictorSP BallShootUpper {5};
@@ -95,7 +97,7 @@ frc::PIDController shooterTopPID(.8, 0, 0, &ShooterTopEncoder, &BallShootUpper);
 frc::PIDController shooterBottomPID(.1, .1, .3, &ShooterBottomEncoder, &BallShootLower); // Tune
 
 //AutoAim
-AutoAim autoAim(&ShooterRaiseEncoder, &ShooterLimitXLeft, &ShooterLimitXRight, &ShooterLimitY, &BallShootUp, &BallShootSide);
+AutoAim autoAim(&ShooterRaiseEncoder, &ShooterLimitXLeft, &ShooterLimitXRight, &ShooterLimitY, &BallShootUp, &BallShootSide, lockedOn, blocksSeen);
 
 void Robot::RobotInit() 
 {
@@ -118,6 +120,7 @@ void Robot::RobotInit()
 
 void Robot::RobotPeriodic() 
 {
+
   colorRead = ColorSensor.GetRawColor();
   
   colorVisionStr = RawColorString(colorRead);
@@ -132,6 +135,16 @@ void Robot::RobotPeriodic()
     PixyCamStr += PixyArray[i];
   }
   std::cout << PixyArray;
+
+  if(!yMotorSet && ShooterLimitY.Get() == 0)
+  {
+    BallShootUp.Set(.1);
+  }
+  else
+  {
+    frcShooterRaiseEncoder.Reset();
+    yMotorSet = true;
+  }
 }
 
 void Robot::AutonomousInit() 
@@ -292,12 +305,6 @@ void Robot::RunLauncher()
     } 
   }
 }
-
-/*########################################################################################
-
-          Auto Aim
-
-########################################################################################*/
 
 /*########################################################################################
 

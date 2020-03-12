@@ -1,6 +1,5 @@
 
 #pragma once
-
 #include <string>
 #include "rev/ColorSensorV3.h"
 #include <frc/TimedRobot.h>
