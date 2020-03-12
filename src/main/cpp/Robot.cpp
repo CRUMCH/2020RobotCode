@@ -67,7 +67,6 @@ int pixyCamY = 0;
 int desiredEncoderDistance1 = 0;
 int desiredEncoderDistance2 = 0;
 
-
 std::string colorVisionStr = "";
 
 bool psFirstOn = false;
@@ -82,6 +81,7 @@ bool intakeButton = false;
 
 bool lockedOn = false;
 bool blocksSeen = false;
+bool aimSwitch = false;
 
 static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
 rev::ColorSensorV3 ColorSensor {i2cPort};
@@ -193,13 +193,29 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  // RunDriveTrain();
-  // RunLauncher();
-  // RunHanger();
-  // RunElevator();
-  // RunColorWheel();
-  // autoAim.Run();
+  autoAim.GetLockedOn() = lockedOn;
 
+  if(Xbox.GetRawButtonPressed)
+  {
+    aimSwitch = true;
+  }
+
+  RunDriveTrain();
+  RunHanger();
+  RunElevator();
+  RunColorWheel();
+
+  if(aimSwitch)
+  {
+    autoAim.Run();
+  }
+
+  if(lockedOn)
+  {
+    RunLauncher();
+  }
+
+  
   // if(Xbox.GetRawButtonPressed(4))
   // {
   //   autoAim.Run();
@@ -288,20 +304,23 @@ double shooterTopStart = 0;
 void Robot::RunLauncher()
 {
  if(Xbox.GetRawButtonPressed(4))
- {
+ {   
+    std::cout << ShooterTopEncoder.GetRevs() << std::endl;
+    std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
+
     if(!launcherStarted)
     {
       shooterTopStart = ShooterTopEncoder.GetDistance();
 
       launcherStarted = true;
 
-      shooterTopPID.SetSetpoint(4);
-      shooterBottomPID.SetSetpoint(4);
+      shooterTopPID.SetSetpoint(2);
+      shooterBottomPID.SetSetpoint(2);
 
       shooterTopPID.Enable();
       shooterBottomPID.Enable();
     }
-    else if(launcherStarted && ShooterTopEncoder.GetDistance() - shooterTopStart > 100) // Tune Value
+    else if(launcherStarted && ShooterTopEncoder.GetDistance() - shooterTopStart > 10) // Tune Value
     {
       if(launcherStarted)
       {
@@ -311,10 +330,29 @@ void Robot::RunLauncher()
         BallShootUpper.Set(0);
         BallShootLower.Set(0);
         
-        launcherStarted = false;
+        if(ShooterLimitY.Get())
+        {
+          BallShootUp.Set(0);
+        }
+        else
+        {
+          BallShootUp.Set(-.25);
+        }
 
-      std::cout << ShooterTopEncoder.GetRevs() << std::endl;
-      std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
+        if(ShooterLimitXLeft.Get())
+        {
+          BallShootSide.Set(0);
+        }
+        else
+        {
+          BallShootSide.Set(-.25);
+        }
+
+        if(ShooterLimitY.Get() && ShooterLimitXLeft.Get())
+        {
+          launcherStarted = false;
+          lockedOn = false;
+        }
       }
     } 
   }
