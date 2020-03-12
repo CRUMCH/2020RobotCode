@@ -1,5 +1,4 @@
 
-#pragma once
 #include "Robot.h"
 #include "MyEncoder.h"
 #include <iostream>
@@ -65,6 +64,10 @@ char PixyArray [80];
 int pixyCamX = 0;
 int pixyCamY = 0;
 
+int desiredEncoderDistance1 = 0;
+int desiredEncoderDistance2 = 0;
+
+
 std::string colorVisionStr = "";
 
 bool psFirstOn = false;
@@ -97,7 +100,18 @@ frc::PIDController shooterTopPID(.8, 0, 0, &ShooterTopEncoder, &BallShootUpper);
 frc::PIDController shooterBottomPID(.1, .1, .3, &ShooterBottomEncoder, &BallShootLower); // Tune
 
 //AutoAim
-AutoAim autoAim(&ShooterRaiseEncoder, &ShooterLimitXLeft, &ShooterLimitXRight, &ShooterLimitY, &BallShootUp, &BallShootSide, lockedOn, blocksSeen);
+AutoAim autoAim(&ShooterRaiseEncoder,
+ &ShooterLimitXLeft,
+ &ShooterLimitXRight,
+ &ShooterLimitY,
+ &BallShootUp,
+ &BallShootSide,
+ blocksSeen,
+ 20,
+ -20,
+ desiredEncoderDistance1,
+ desiredEncoderDistance2,
+ pixyCamX);
 
 void Robot::RobotInit() 
 {

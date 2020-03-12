@@ -1,5 +1,4 @@
 
-#pragma once
 #include "MyEncoder.h"
 #include <frc/WPILib.h>
 
