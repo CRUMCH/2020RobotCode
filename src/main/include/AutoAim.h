@@ -21,6 +21,7 @@ class AutoAim
    int initCurrentX);
   void RunAutoAim();
   bool GetLockedOn();
+  void SetLockedOn(bool newLockedOn);
  private:
   MyEncoder *ShooterRaiseEncoder;
   frc::DigitalInput *ShooterLimitXLeft;

@@ -36,6 +36,11 @@ bool AutoAim::GetLockedOn()
   return lockedOn;
 }
 
+void AutoAim::SetLockedOn(bool newLockedOn)
+{
+  lockedOn = newLockedOn;
+}
+
 void AutoAim::RunAutoAim()
 {
   if(blocksSeen)

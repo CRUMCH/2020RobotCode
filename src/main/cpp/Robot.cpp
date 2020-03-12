@@ -193,9 +193,9 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic() 
 {
-  autoAim.GetLockedOn() = lockedOn;
+  autoAim.SetLockedOn(lockedOn);
 
-  if(Xbox.GetRawButtonPressed)
+  if(Xbox.GetRawButtonPressed(4))
   {
     aimSwitch = true;
   }
@@ -207,7 +207,7 @@ void Robot::TeleopPeriodic()
 
   if(aimSwitch)
   {
-    autoAim.Run();
+    autoAim.RunAutoAim();
   }
 
   if(lockedOn)
