@@ -109,6 +109,10 @@ void Robot::RobotInit()
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
+  WheelFrontLeft.SetInverted(true);
+  WheelBackLeft.SetInverted(true);
+  WheelBackRight.SetInverted(true);
+
   IntakeOpen.SetPulseDuration(0.1);
   IntakeClose.SetPulseDuration(0.1);
 
@@ -123,17 +127,17 @@ void Robot::RobotPeriodic()
 {
   // Communication With Arduino WIP
 
-  int size = PixyCam.Read(PixyArray, 80);
-  PixyCamStr.clear();
-  for(int i = 0; i < size; i++) 
-  {
-    PixyCamStr += PixyArray[i];
-    if(PixyArray[i] == '\n')
-    {
+  // int size = PixyCam.Read(PixyArray, 80);
+  // PixyCamStr.clear();
+  // for(int i = 0; i < size; i++) 
+  // {
+  //   PixyCamStr += PixyArray[i];
+  //   if(PixyArray[i] == '\n')
+  //   {
       // PixyCam.Write(PixyArrayOutput, 1);
       // PixyCam.Flush();
-    }
-  }
+  //   }
+  // }
 //  std::cout << PixyArray;
 }
 
@@ -187,7 +191,7 @@ void Robot::TeleopPeriodic()
   //   aimSwitch = true;
   // }
 
-  // RunDriveTrain();
+  RunDriveTrain();
   // RunHanger();
   // RunElevator();
   // RunColorWheel();
@@ -204,7 +208,20 @@ void Robot::TeleopPeriodic()
     autoAim.SetLockedOn(true);
   }
 
-  
+  if(Xbox.GetRawButton(1))
+  {
+    BallShootSide.Set(.25);
+    BallShootUp.Set(.1);
+    HangerUp.Set(.25);
+    HangerSide.Set(.25);
+
+  }
+  else
+  {
+    BallShootSide.Set(0);
+    BallShootUp.Set(0);
+  }
+
   // if(Xbox.GetRawButtonPressed(4))
   // {
   //   autoAim.Run();
@@ -267,7 +284,7 @@ void Robot::RunDriveTrain()
     xboxLX = 0;
   }
   
-  Mecanums.DriveCartesian(xboxRX , xboxLY , xboxLX);
+  Mecanums.DriveCartesian(xboxRX , xboxLX , xboxRX);
 }
 
 /*########################################################################################
@@ -283,8 +300,10 @@ void Robot::RunLauncher()
 {
  if(autoAim.GetLockedOn())
  {   
-    std::cout << ShooterTopEncoder.GetRevs() << std::endl;
-    std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
+    // std::cout << ShooterTopEncoder.GetRevs() << std::endl;
+    // std::cout << ShooterBottomEncoder.GetRevs() << std::endl;
+    // std::cout << ShooterTopEncoder.GetDistance() << std::endl;
+    // std::cout << ShooterBottomEncoder.GetDistance() << std::endl;
 
     if(!launcherStarted)
     {
@@ -292,8 +311,8 @@ void Robot::RunLauncher()
 
       launcherStarted = true;
 
-      shooterTopPID.SetSetpoint(2);
-      shooterBottomPID.SetSetpoint(-2);
+      shooterTopPID.SetSetpoint(.1);
+      shooterBottomPID.SetSetpoint(-.1);
 
       shooterTopPID.Enable();
       shooterBottomPID.Enable();
